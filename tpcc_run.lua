@@ -132,7 +132,7 @@ function new_order()
   con:query("INSERT INTO orders".. table_num ..
             "(o_id, o_d_id, o_w_id, o_c_id,  o_entry_d, o_ol_cnt, o_all_local)"..
             string.format(" VALUES (%d,%d,%d,%d,NOW(),%d,%d)",
-            d_next_o_id+1, d_id, w_id, c_id, ol_cnt, all_local))
+            d_next_o_id, d_id, w_id, c_id, ol_cnt, all_local))
 
 -- INSERT INTO new_orders (no_o_id, no_d_id, no_w_id)
 --    VALUES (:o_id,:d_id,:w_id); */
@@ -140,7 +140,7 @@ function new_order()
   con:query("INSERT INTO new_orders".. table_num ..
             "(no_o_id, no_d_id, no_w_id)"..
             string.format(" VALUES (%d,%d,%d)",
-            d_next_o_id+1, d_id, w_id))
+            d_next_o_id, d_id, w_id))
 
   for ol_number=1, ol_cnt do
 	local ol_supply_w_id = supware[ol_number]
@@ -226,7 +226,7 @@ function new_order()
 	            " (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info)"..
 		    " VALUES "..
                     string.format("(%d,%d,%d,%d,%d,%d,%d,%d,'%s')",
-                    d_next_o_id+1, d_id, w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info)
+                    d_next_o_id, d_id, w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info)
                    )
 
   end
@@ -638,7 +638,7 @@ function delivery()
 --		                SET ol_delivery_d = :datetime
 --		                WHERE ol_o_id = :no_o_id AND ol_d_id = :d_id AND
 --				ol_w_id = :w_id;*/
-
+        print("Update ol_delivery_d"..table_num.." no_o_id: "..no_o_id )
         con:query(string.format([[UPDATE order_line%d SET ol_delivery_d = NOW()
                 WHERE ol_o_id = %d AND ol_d_id = %d AND ol_w_id = %d]],
                       table_num, no_o_id, d_id, w_id))

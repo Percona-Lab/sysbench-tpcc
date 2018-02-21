@@ -74,9 +74,23 @@ function cmd_prepare()
 
 end
 
+-- Check consistency 
+-- benefit from executing with --threads > 1 as long as --scale > 1
+function cmd_check()
+   local drv = sysbench.sql.driver()
+   local con = drv:connect()
+
+   for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.scale,
+   sysbench.opt.threads do
+     check_tables(drv, con, i)
+   end
+
+end
+
 -- Implement parallel prepare and prewarm commands
 sysbench.cmdline.commands = {
    prepare = {cmd_prepare, sysbench.cmdline.PARALLEL_COMMAND},
+   check = {cmd_check, sysbench.cmdline.PARALLEL_COMMAND}
 }
 
 

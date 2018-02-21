@@ -20,6 +20,7 @@
 
 require("tpcc_common")
 require("tpcc_run")
+require("tpcc_check")
 
 
 function event()
