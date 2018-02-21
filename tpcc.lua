@@ -22,6 +22,21 @@ require("tpcc_common")
 require("tpcc_run")
 require("tpcc_check")
 
+function thread_init()
+   drv = sysbench.sql.driver()
+   con = drv:connect()
+
+   if drv:name() == "mysql"
+   then
+        if sysbench.opt.trx_level == "RR" then
+            con:query("SET SESSION transaction_isolation='REPEATABLE-READ'")
+        elseif sysbench.opt.trx_level == "RC" then
+            con:query("SET SESSION transaction_isolation='READ-COMMITTED'")
+        elseif sysbench.opt.trx_level == "SER" then
+            con:query("SET SESSION transaction_isolation='SERIALIZABLE'")
+        end
+   end
+end
 
 function event()
   -- print( NURand (1023,1,3000))

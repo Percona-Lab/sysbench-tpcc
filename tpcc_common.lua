@@ -40,6 +40,8 @@ sysbench.cmdline.options = {
       {"Number of tables", 1},
    use_fk =
       {"Use foreign keys", 1},
+   trx_level =
+      {"Transaction isolation level (RC, RR or SER)", "RR"},
    mysql_storage_engine =
       {"Storage engine, if MySQL is used", "innodb"},
    mysql_table_options =
@@ -328,10 +330,15 @@ function load_tables(drv, con, warehouse_num)
    local extra_table_options = ""
    local query
 
-   if drv:name() == "mysql" or drv:name() == "attachsql" or
-      drv:name() == "drizzle"
+   if drv:name() == "mysql"
    then
-      engine_def = "/*! ENGINE = " .. sysbench.opt.mysql_storage_engine .. " */"
+        if sysbench.opt.trx_level == "RR" then
+            con:query("SET SESSION transaction_isolation='REPEATABLE-READ'")
+        elseif sysbench.opt.trx_level == "RC" then
+            con:query("SET SESSION transaction_isolation='READ-COMMITTED'")
+        elseif sysbench.opt.trx_level == "SER" then
+            con:query("SET SESSION transaction_isolation='SERIALIZABLE'")
+        end
    end
 
 
@@ -339,7 +346,7 @@ function load_tables(drv, con, warehouse_num)
 
    for table_num = 1, sysbench.opt.tables do 
 
-   print(string.format("Creating tables: %d for warehouse: %d\n", table_num, warehouse_num))
+   print(string.format("loading tables: %d for warehouse: %d\n", table_num, warehouse_num))
 
     con:bulk_insert_init("INSERT INTO warehouse" .. table_num .. 
 	" (w_id, w_name, w_street_1, w_street_2, w_city, w_state, w_zip, w_tax, w_ytd) values")
