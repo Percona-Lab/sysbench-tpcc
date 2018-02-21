@@ -41,7 +41,9 @@ sysbench.cmdline.options = {
    use_fk =
       {"Use foreign keys", 1},
    mysql_storage_engine =
-      {"Storage engine, if MySQL is used", "innodb"}
+      {"Storage engine, if MySQL is used", "innodb"},
+   mysql_table_options =
+      {"Extra table options, if MySQL is used. e.g. 'COLLATE latin1_bin'", ""}
 }
 
 function sleep(n)
@@ -104,6 +106,7 @@ function create_tables(drv, con, table_num)
       drv:name() == "drizzle"
    then
       engine_def = "/*! ENGINE = " .. sysbench.opt.mysql_storage_engine .. " */"
+      extra_table_options = sysbench.opt.mysql_table_options or ""
    end
 
 
@@ -278,8 +281,8 @@ function create_tables(drv, con, table_num)
 	i_price decimal(5,2), 
 	i_data varchar(50),
 	PRIMARY KEY(i_id) 
-	) %s ]],
-      i, engine_def)
+	) %s %s]],
+      i, engine_def, extra_table_options)
 
    con:query(query)
 

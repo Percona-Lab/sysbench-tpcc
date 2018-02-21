@@ -638,7 +638,6 @@ function delivery()
 --		                SET ol_delivery_d = :datetime
 --		                WHERE ol_o_id = :no_o_id AND ol_d_id = :d_id AND
 --				ol_w_id = :w_id;*/
-        print("Update ol_delivery_d"..table_num.." no_o_id: "..no_o_id )
         con:query(string.format([[UPDATE order_line%d SET ol_delivery_d = NOW()
                 WHERE ol_o_id = %d AND ol_d_id = %d AND ol_w_id = %d]],
                       table_num, no_o_id, d_id, w_id))
