@@ -26,35 +26,33 @@ function thread_init()
    drv = sysbench.sql.driver()
    con = drv:connect()
 
-   if drv:name() == "mysql"
-   then
-        if sysbench.opt.trx_level == "RR" then
-            con:query("SET SESSION transaction_isolation='REPEATABLE-READ'")
-        elseif sysbench.opt.trx_level == "RC" then
-            con:query("SET SESSION transaction_isolation='READ-COMMITTED'")
-        elseif sysbench.opt.trx_level == "SER" then
-            con:query("SET SESSION transaction_isolation='SERIALIZABLE'")
-        end
-   end
+   set_isolation_level(drv,con) 
+   
 end
 
 function event()
   -- print( NURand (1023,1,3000))
-  local trx = sysbench.rand.uniform(1,23)
-  if trx <= 10 then
-    new_order()
-  elseif trx <= 20 then
-    payment()
-  elseif trx <= 21 then
+  local trx_type = sysbench.rand.uniform(1,23)
+  if trx_type <= 10 then
+--    print("new_order")
+    trx=new_order
+  elseif trx_type <= 20 then
+--   print("payment")
+    trx=payment
+  elseif trx_type <= 21 then
  --   print("order status")
-    orderstatus()
-  elseif trx <= 22 then
- --   print("delivery")
-    delivery()
-  elseif trx <= 23 then
- --   print("delivery")
-    stocklevel()
+    trx=orderstatus
+  elseif trx_type <= 22 then
+--    print("delivery")
+    trx=delivery
+  elseif trx_type <= 23 then
+--    print("stock")
+    trx=stocklevel
   end
+
+-- Repeat transaction execution until success
+  while not pcall(function () trx() end ) do end
+
 end
 
 -- vim:ts=4 ss=4 sw=4 expandtab
