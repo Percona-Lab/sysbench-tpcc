@@ -324,24 +324,33 @@ function create_tables(drv, con, table_num)
 
 end
 
+
+function set_isolation_level(drv,con)
+   if drv:name() == "mysql"
+   then
+        if sysbench.opt.trx_level == "RR" then
+            isolation_level="REPEATABLE-READ"
+        elseif sysbench.opt.trx_level == "RC" then
+            isolation_level="READ-COMMITTED"
+        elseif sysbench.opt.trx_level == "SER" then
+            isolation_level="SERIALIZABLE"
+        end
+
+        con:query("SET SESSION transaction_isolation='".. isolation_level .."'")
+--        con:query("SET SESSION tx_isolation='".. isolation_level .."'")
+   end
+end
+
+
+
 function load_tables(drv, con, warehouse_num)
    local id_index_def, id_def
    local engine_def = ""
    local extra_table_options = ""
    local query
 
-   if drv:name() == "mysql"
-   then
-        if sysbench.opt.trx_level == "RR" then
-            con:query("SET SESSION transaction_isolation='REPEATABLE-READ'")
-        elseif sysbench.opt.trx_level == "RC" then
-            con:query("SET SESSION transaction_isolation='READ-COMMITTED'")
-        elseif sysbench.opt.trx_level == "SER" then
-            con:query("SET SESSION transaction_isolation='SERIALIZABLE'")
-        end
-   end
-
-
+   set_isolation_level(drv,con)
+   
    -- print(string.format("Creating warehouse: %d\n", warehouse_num))
 
    for table_num = 1, sysbench.opt.tables do 
