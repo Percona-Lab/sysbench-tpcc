@@ -160,9 +160,10 @@ function new_order()
 	  local i_data
 
 	  if rs.nrows == 0 then
-            con:query("ROLLBACK")
+        --print("ROLLBACK")
+        con:query("ROLLBACK")
 	    return	
-          end
+      end
 
 	  for i = 1, rs.nrows do
 	    row = rs:fetch_row()

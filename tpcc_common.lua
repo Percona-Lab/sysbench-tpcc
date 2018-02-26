@@ -336,7 +336,12 @@ function set_isolation_level(drv,con)
             isolation_level="SERIALIZABLE"
         end
 
-        con:query("SET SESSION transaction_isolation='".. isolation_level .."'")
+        rs=con:query("SHOW VARIABLES LIKE 't%_isolation'")
+        row = rs:fetch_row()
+        isolation_variable = row[1]
+
+        con:query("SET SESSION " .. isolation_variable .. "='".. isolation_level .."'")
+--        con:query("SET SESSION transaction_isolation='".. isolation_level .."'")
 --        con:query("SET SESSION tx_isolation='".. isolation_level .."'")
    end
 end
