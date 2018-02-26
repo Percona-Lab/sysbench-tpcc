@@ -34,13 +34,12 @@ function check_tables(drv, con, warehouse_num)
             local d_tax = tonumber(row[2])
             if d_tax ~= 0 then
                 pass1=0
+                print(string.format("Check 1, warehouse: %d, table %d FAILED!!!", warehouse_num, table_num))
             end
         end
     end
     
-    if pass1 == 1 then
-        print(string.format("Check 1, warehouse: %d PASSED", warehouse_num))
-    else
+    if pass1 ~= 1 then
         print(string.format("Check 1, warehouse: %d FAILED!!!", warehouse_num))
     end
 

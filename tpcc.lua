@@ -57,4 +57,9 @@ function event()
   end
 end
 
+function sysbench.hooks.report_intermediate(stat)
+-- --   print("my stat: ", val)
+   sysbench.report_csv(stat)
+end
+
 -- vim:ts=4 ss=4 sw=4 expandtab
