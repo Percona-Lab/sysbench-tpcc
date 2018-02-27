@@ -193,7 +193,7 @@ function create_tables(drv, con, table_num)
 	h_w_id smallint,
 	h_date datetime,
 	h_amount decimal(6,2), 
-	h_data varchar(24) 
+	h_data varchar(24)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
 
@@ -240,7 +240,7 @@ function create_tables(drv, con, table_num)
 	ol_quantity tinyint, 
 	ol_amount decimal(6,2), 
 	ol_dist_info char(24),
-	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number) 
+	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
 
@@ -308,6 +308,8 @@ function create_tables(drv, con, table_num)
     con:query("CREATE INDEX idx_orders ON orders"..i.." (o_w_id,o_d_id,o_c_id,o_id)")
     con:query("CREATE INDEX fkey_stock_2 ON stock"..i.." (s_i_id)")
     con:query("CREATE INDEX fkey_order_line_2 ON order_line"..i.." (ol_supply_w_id,ol_i_id)")
+    con:query("CREATE INDEX fkey_history_1 ON history"..i.." (h_c_w_id,h_c_d_id,h_c_id)")
+    con:query("CREATE INDEX fkey_history_2 ON history"..i.." (h_w_id,h_d_id )")
     if sysbench.opt.use_fk == 1 then
         print(string.format("Adding FK %d ... \n", i))
         con:query("ALTER TABLE new_orders"..i.." ADD CONSTRAINT fkey_new_orders_1_"..table_num.." FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders"..i.."(o_w_id,o_d_id,o_id)")
