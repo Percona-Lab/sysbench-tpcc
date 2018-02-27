@@ -113,6 +113,26 @@ function check_tables(drv, con, warehouse_num)
         print(string.format("Check 4, warehouse: %d FAILED!!!", warehouse_num))
     end
 
+    local pass5 = 1
+    for table_num = 1, sysbench.opt.tables do 
+        -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
+        rs  = con:query(string.format("SELECT count(*) FROM orders%d LEFT JOIN new_orders%d ON (no_w_id=o_w_id AND o_d_id=no_d_id AND o_id=no_o_id) where o_w_id=%d and ((o_carrier_id IS NULL and no_o_id IS  NULL) OR (o_carrier_id IS NOT NULL and no_o_id IS NOT NULL  )) ",table_num, table_num, warehouse_num))
+        
+        for i = 1, rs.nrows do
+            row = rs:fetch_row()
+            local d1 = tonumber(row[1])
+            if d1 ~= 0 then
+                pass5=0
+            end
+        end
+    end
+    
+    if pass5 == 1 then
+        print(string.format("Check 5, warehouse: %d PASSED", warehouse_num))
+    else
+        print(string.format("Check 5, warehouse: %d FAILED!!!", warehouse_num))
+    end
+
     local pass7 = 1
     for table_num = 1, sysbench.opt.tables do 
         -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
