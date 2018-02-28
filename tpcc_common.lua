@@ -469,9 +469,9 @@ function load_tables(drv, con, warehouse_num)
 -- 3,000 rows in the ORDER table with
    a_counts[warehouse_num][d_id][o_id] = sysbench.rand.uniform(5,15)
  
-      query = string.format([[(%d, %d, %d, %d, NOW(), %d, %d, 1 )]],
+      query = string.format([[(%d, %d, %d, %d, NOW(), %s, %d, 1 )]],
 	o_id, d_id, warehouse_num, tab[o_id], 
-        sysbench.rand.uniform(1,10),
+        o_id < 2101 and sysbench.rand.uniform(1,10) or "NULL",
         a_counts[warehouse_num][d_id][o_id]
         )
       con:bulk_insert_next(query)
@@ -492,9 +492,10 @@ function load_tables(drv, con, warehouse_num)
    for o_id = 1 , 3000 do
    for ol_id = 1, a_counts[warehouse_num][d_id][o_id] do 
  
-      query = string.format([[(%d, %d, %d, %d, %d, %d, NOW(), 5, %f, '%s' )]],
-	o_id, d_id, warehouse_num, ol_id, sysbench.rand.uniform(1, MAXITEMS), warehouse_num,
-        sysbench.rand.uniform_double()*9999.99,
+      query = string.format([[(%d, %d, %d, %d, %d, %d, %s, 5, %f, '%s' )]],
+	    o_id, d_id, warehouse_num, ol_id, sysbench.rand.uniform(1, MAXITEMS), warehouse_num,
+        o_id < 2101 and "NOW()" or "NULL", 
+        o_id < 2101 and 0 or sysbench.rand.uniform_double()*9999.99,
 	string.rep(sysbench.rand.string("@"),24)
         )
       con:bulk_insert_next(query)

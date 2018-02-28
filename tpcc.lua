@@ -27,6 +27,7 @@ function thread_init()
    con = drv:connect()
 
    set_isolation_level(drv,con) 
+   con:query("SET autocommit=0")
    
 end
 
@@ -51,7 +52,9 @@ function event()
   end
 
 -- Repeat transaction execution until success
-  while not pcall(function () trx() end ) do end
+  while not pcall(function () trx() end ) do 
+    con:query("ROLLBACK")
+  end
 
 end
 
@@ -59,5 +62,6 @@ function sysbench.hooks.report_intermediate(stat)
 -- --   print("my stat: ", val)
    sysbench.report_csv(stat)
 end
+
 
 -- vim:ts=4 ss=4 sw=4 expandtab

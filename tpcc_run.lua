@@ -379,7 +379,7 @@ function payment()
 
 	rs = con:query([[SELECT c_first, c_middle, c_last, c_street_1,
                          c_street_2, c_city, c_state, c_zip, c_phone,
-                         c_credit, c_credit_lim, c_discount, c_balance, c_since
+                         c_credit, c_credit_lim, c_discount, c_balance, c_ytd_payment, c_since
 			   FROM customer]]..table_num..
 			 " WHERE c_w_id = ".. w_id.. " AND c_d_id="..c_d_id ..
 			 " AND c_id="..c_id.." FOR UPDATE")
@@ -396,6 +396,7 @@ function payment()
   local c_credit_lim
   local c_discount
   local c_balance
+  local c_ytd_payment
   local c_since
   for i = 1, rs.nrows do
 	row = rs:fetch_row()
@@ -412,11 +413,13 @@ function payment()
 	c_credit_lim = row[11]
 	c_discount = row[12]
 	c_balance = row[13]
-	c_since = row[14]
+	c_ytd_payment = row[14]
+	c_since = row[15]
     -- print(row[1], row[2], row[3], row[4])
   end
 
   c_balance = tonumber(c_balance) - h_amount
+  c_ytd_payment = tonumber(c_ytd_payment) + h_amount
 
     if c_credit == "BC" then
 -- SELECT c_data 
@@ -445,12 +448,12 @@ function payment()
     --			AND c_d_id = :c_d_id 
     --			AND c_id = :c_id
         con:query("UPDATE customer"..table_num..
-                 " SET c_balance="..c_balance..", c_data='"..c_new_data.."'"..
+                 " SET c_balance="..c_balance..", c_ytd_payment="..c_ytd_payment..",c_data='"..c_new_data.."'"..
                  " WHERE c_w_id = ".. w_id.. " AND c_d_id="..c_d_id ..
                              " AND c_id="..c_id)
     else
         con:query("UPDATE customer"..table_num..
-                 " SET c_balance="..c_balance..
+                 " SET c_balance="..c_balance..", c_ytd_payment="..c_ytd_payment..
                  " WHERE c_w_id = ".. w_id.. " AND c_d_id="..c_d_id ..
                              " AND c_id="..c_id)
 
@@ -596,8 +599,9 @@ function delivery()
 --		                WHERE no_d_id = :d_id AND no_w_id = :w_id;*/
 		                
         rs = con:query(string.format([[SELECT COALESCE(MIN(no_o_id),0) no_o_id
-                FROM new_orders%d WHERE no_d_id = %d AND no_w_id = %d]],
+                 FROM new_orders%d WHERE no_d_id = %d AND no_w_id = %d FOR UPDATE]],
                       table_num, d_id, w_id))
+                 -- FROM new_orders%d WHERE no_d_id = %d AND no_w_id = %d]],
         local no_o_id
         for i = 1,  rs.nrows do
             row = rs:fetch_row()
@@ -662,7 +666,8 @@ function delivery()
 --		                             c_delivery_cnt = c_delivery_cnt + 1
 --		                WHERE c_id = :c_id AND c_d_id = :d_id AND
 --				c_w_id = :w_id;*/
-        con:query(string.format([[UPDATE customer%d SET c_balance = c_balance + %d,
+--        print(string.format("update customer table %d, cid %d, did %d, wid %d balance %f",table_num, o_c_id, d_id, w_id, sm_ol_amount))  				
+        con:query(string.format([[UPDATE customer%d SET c_balance = c_balance + %f,
                 c_delivery_cnt = c_delivery_cnt + 1
                 WHERE c_id = %d AND c_d_id = %d AND  c_w_id = %d]],
                       table_num, sm_ol_amount, o_c_id, d_id, w_id))
