@@ -52,7 +52,9 @@ function event()
   end
 
 -- Repeat transaction execution until success
-  while not pcall(function () trx() end ) do end
+  while not pcall(function () trx() end ) do 
+    con:query("ROLLBACK")
+  end
 
 end
 
@@ -61,17 +63,5 @@ function sysbench.hooks.report_intermediate(stat)
    sysbench.report_csv(stat)
 end
 
-function sysbench.hooks.sql_error_ignorable(err)
-  if err.sql_errno == 1205 then
-    print("Lock timeout detected. Rollback")
-    con:query("ROLLBACK")
-    return true
-  end
-  if err.sql_errno == 1213 then
-    print("Deadlock detected. Rollback")
-    con:query("ROLLBACK")
-    return true
-  end
-end
 
 -- vim:ts=4 ss=4 sw=4 expandtab
