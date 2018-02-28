@@ -196,7 +196,7 @@ function check_tables(drv, con, warehouse_num)
     local pass10 = 1
     for table_num = 1, sysbench.opt.tables do 
         -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
-        rs  = con:query(string.format("SELECT count(*) FROM (  SELECT  c.c_id, c.c_d_id, c.c_w_id, c.c_balance c1, (SELECT sum(ol_amount) FROM orders%d, order_line%d WHERE OL_W_ID=O_W_ID AND OL_D_ID = O_D_ID+0 AND OL_O_ID = O_ID+0 AND OL_DELIVERY_D IS NOT NULL AND O_W_ID=c.c_w_id AND O_D_ID=c.C_D_ID AND O_C_ID=c.C_ID) sm, (SELECT  sum(h_amount)  from  history%d WHERE H_C_W_ID=c.C_W_ID AND H_C_D_ID=c.C_D_ID AND H_C_ID=c.C_ID) smh FROM customer%d c WHERE  c.c_w_id=%d ) t where c1<>sm-smh",table_num, table_num, table_num, table_num, warehouse_num))
+        rs  = con:query(string.format("SELECT count(*) FROM (  SELECT  c.c_id, c.c_d_id, c.c_w_id, c.c_balance c1, (SELECT sum(ol_amount) FROM orders%d STRAIGHT_JOIN order_line%d WHERE OL_W_ID=O_W_ID AND OL_D_ID = O_D_ID AND OL_O_ID = O_ID AND OL_DELIVERY_D IS NOT NULL AND O_W_ID=c.c_w_id AND O_D_ID=c.C_D_ID AND O_C_ID=c.C_ID) sm, (SELECT  sum(h_amount)  from  history%d WHERE H_C_W_ID=c.C_W_ID AND H_C_D_ID=c.C_D_ID AND H_C_ID=c.C_ID) smh FROM customer%d c WHERE  c.c_w_id=%d ) t where c1<>sm-smh",table_num, table_num, table_num, table_num, warehouse_num))
         
         for i = 1, rs.nrows do
             row = rs:fetch_row()
@@ -216,7 +216,7 @@ function check_tables(drv, con, warehouse_num)
     local pass12 = 1
     for table_num = 1, sysbench.opt.tables do 
         -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
-        rs  = con:query(string.format("SELECT count(*) FROM (SELECT  c.c_id, c.c_d_id, c.c_balance c1, c_ytd_payment, (SELECT sum(ol_amount) FROM orders%d, order_line%d WHERE OL_W_ID=O_W_ID AND OL_D_ID = O_D_ID+0 AND OL_O_ID = O_ID+0 AND OL_DELIVERY_D IS NOT NULL AND O_W_ID=c.c_w_id AND O_D_ID=c.C_D_ID AND O_C_ID=c.C_ID) sm FROM customer%d c WHERE  c.c_w_id=%d) t1 WHERE c1+c_ytd_payment <> sm " ,table_num, table_num, table_num, warehouse_num))
+        rs  = con:query(string.format("SELECT count(*) FROM (SELECT  c.c_id, c.c_d_id, c.c_balance c1, c_ytd_payment, (SELECT sum(ol_amount) FROM orders%d STRAIGHT_JOIN order_line%d WHERE OL_W_ID=O_W_ID AND OL_D_ID = O_D_ID AND OL_O_ID = O_ID AND OL_DELIVERY_D IS NOT NULL AND O_W_ID=c.c_w_id AND O_D_ID=c.C_D_ID AND O_C_ID=c.C_ID) sm FROM customer%d c WHERE  c.c_w_id=%d) t1 WHERE c1+c_ytd_payment <> sm " ,table_num, table_num, table_num, warehouse_num))
         
         for i = 1, rs.nrows do
             row = rs:fetch_row()
