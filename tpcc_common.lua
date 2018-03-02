@@ -193,7 +193,7 @@ function create_tables(drv, con, table_num)
 	h_w_id smallint,
 	h_date datetime,
 	h_amount decimal(6,2), 
-	h_data varchar(24) 
+	h_data varchar(24)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
 
@@ -240,7 +240,7 @@ function create_tables(drv, con, table_num)
 	ol_quantity tinyint, 
 	ol_amount decimal(6,2), 
 	ol_dist_info char(24),
-	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number) 
+	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
 
@@ -308,6 +308,8 @@ function create_tables(drv, con, table_num)
     con:query("CREATE INDEX idx_orders ON orders"..i.." (o_w_id,o_d_id,o_c_id,o_id)")
     con:query("CREATE INDEX fkey_stock_2 ON stock"..i.." (s_i_id)")
     con:query("CREATE INDEX fkey_order_line_2 ON order_line"..i.." (ol_supply_w_id,ol_i_id)")
+    con:query("CREATE INDEX fkey_history_1 ON history"..i.." (h_c_w_id,h_c_d_id,h_c_id)")
+    con:query("CREATE INDEX fkey_history_2 ON history"..i.." (h_w_id,h_d_id )")
     if sysbench.opt.use_fk == 1 then
         print(string.format("Adding FK %d ... \n", i))
         con:query("ALTER TABLE new_orders"..i.." ADD CONSTRAINT fkey_new_orders_1_"..table_num.." FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders"..i.."(o_w_id,o_d_id,o_id)")
@@ -465,9 +467,9 @@ function load_tables(drv, con, warehouse_num)
 -- 3,000 rows in the ORDER table with
    a_counts[warehouse_num][d_id][o_id] = sysbench.rand.uniform(5,15)
  
-      query = string.format([[(%d, %d, %d, %d, NOW(), %d, %d, 1 )]],
+      query = string.format([[(%d, %d, %d, %d, NOW(), %s, %d, 1 )]],
 	o_id, d_id, warehouse_num, tab[o_id], 
-        sysbench.rand.uniform(1,10),
+        o_id < 2101 and sysbench.rand.uniform(1,10) or "NULL",
         a_counts[warehouse_num][d_id][o_id]
         )
       con:bulk_insert_next(query)
@@ -488,9 +490,10 @@ function load_tables(drv, con, warehouse_num)
    for o_id = 1 , 3000 do
    for ol_id = 1, a_counts[warehouse_num][d_id][o_id] do 
  
-      query = string.format([[(%d, %d, %d, %d, %d, %d, NOW(), 5, %f, '%s' )]],
-	o_id, d_id, warehouse_num, ol_id, sysbench.rand.uniform(1, MAXITEMS), warehouse_num,
-        sysbench.rand.uniform_double()*9999.99,
+      query = string.format([[(%d, %d, %d, %d, %d, %d, %s, 5, %f, '%s' )]],
+	    o_id, d_id, warehouse_num, ol_id, sysbench.rand.uniform(1, MAXITEMS), warehouse_num,
+        o_id < 2101 and "NOW()" or "NULL", 
+        o_id < 2101 and 0 or sysbench.rand.uniform_double()*9999.99,
 	string.rep(sysbench.rand.string("@"),24)
         )
       con:bulk_insert_next(query)
