@@ -345,7 +345,7 @@ function set_isolation_level(drv,con)
             isolation_level="SERIALIZABLE"
         end
        
-        rs=con:query("SHOW VARIABLES LIKE '%_isolation'")
+        rs=con:query("SHOW VARIABLES LIKE 't%_isolation'")
         row = rs:fetch_row()
         isolation_variable = row[1]
 
