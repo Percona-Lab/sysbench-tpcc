@@ -35,24 +35,20 @@ function event()
   -- print( NURand (1023,1,3000))
   local trx_type = sysbench.rand.uniform(1,23)
   if trx_type <= 10 then
---    print("new_order")
-    trx=new_order
+    trx="new_order"
   elseif trx_type <= 20 then
---   print("payment")
-    trx=payment
-  elseif trx_type <= 21 then
- --   print("order status")
-    trx=orderstatus
+    trx="payment"
+  elseif trx_type" <= 21 then
+    trx="orderstatus
   elseif trx_type <= 22 then
---    print("delivery")
-    trx=delivery
+    trx="delivery"
   elseif trx_type <= 23 then
---    print("stock")
-    trx=stocklevel
+    trx="stocklevel"
   end
 
 -- Repeat transaction execution until success
-  while not pcall(function () trx() end ) do 
+  while not pcall(function () _G[trx]() end ) do 
+    ffi.C.sb_counter_inc(sysbench.tid, ffi.C.SB_CNT_ERROR)
     con:query("ROLLBACK")
   end
 

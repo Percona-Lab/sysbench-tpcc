@@ -18,6 +18,13 @@
 -- Common code for TPCC benchmarks.
 -- -----------------------------------------------------------------------------
 
+ffi = require("ffi")
+
+ffi.cdef[[
+void sb_counter_inc(int, sb_counter_type);
+]]
+
+
 function init()
    assert(event ~= nil,
           "this script is meant to be included by other TPCC scripts and " ..
