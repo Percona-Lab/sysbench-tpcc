@@ -38,8 +38,8 @@ function event()
     trx="new_order"
   elseif trx_type <= 20 then
     trx="payment"
-  elseif trx_type" <= 21 then
-    trx="orderstatus
+  elseif trx_type <= 21 then
+    trx="orderstatus"
   elseif trx_type <= 22 then
     trx="delivery"
   elseif trx_type <= 23 then
