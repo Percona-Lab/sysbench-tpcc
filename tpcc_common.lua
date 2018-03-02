@@ -18,6 +18,13 @@
 -- Common code for TPCC benchmarks.
 -- -----------------------------------------------------------------------------
 
+ffi = require("ffi")
+
+ffi.cdef[[
+void sb_counter_inc(int, sb_counter_type);
+]]
+
+
 function init()
    assert(event ~= nil,
           "this script is meant to be included by other TPCC scripts and " ..
@@ -337,14 +344,12 @@ function set_isolation_level(drv,con)
         elseif sysbench.opt.trx_level == "SER" then
             isolation_level="SERIALIZABLE"
         end
-
+       
         rs=con:query("SHOW VARIABLES LIKE 't%_isolation'")
         row = rs:fetch_row()
         isolation_variable = row[1]
 
         con:query("SET SESSION " .. isolation_variable .. "='".. isolation_level .."'")
---        con:query("SET SESSION transaction_isolation='".. isolation_level .."'")
---        con:query("SET SESSION tx_isolation='".. isolation_level .."'")
    end
 end
 
