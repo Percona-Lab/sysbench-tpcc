@@ -48,7 +48,6 @@ function event()
 
 -- Repeat transaction execution until success
   while not pcall(function () _G[trx]() end ) do 
-    ffi.C.sb_counter_inc(sysbench.tid, ffi.C.SB_CNT_ERROR)
     con:query("ROLLBACK")
   end
 
