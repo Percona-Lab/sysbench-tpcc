@@ -78,6 +78,11 @@ function cmd_prepare()
    end
 
    -- make sure all tables are created before we load data
+
+   if drv:name() == "pgsql" then 
+      show_query="select * from pg_catalog.pg_tables where schemaname != 'information_schema' and schemaname != 'pg_catalog'"
+   end
+
    repeat
       rs= con:query(show_query)
       ffi.C.usleep(1000)
@@ -355,6 +360,20 @@ function set_isolation_level(drv,con)
 
         con:query("SET SESSION " .. isolation_variable .. "='".. isolation_level .."'")
    end
+
+   if drv:name() == "pgsql"
+   then
+        if sysbench.opt.trx_level == "RR" then
+            isolation_level="REPEATABLE READ"
+        elseif sysbench.opt.trx_level == "RC" then
+            isolation_level="READ COMMITTED"
+        elseif sysbench.opt.trx_level == "SER" then
+            isolation_level="SERIALIZABLE"
+        end
+       
+        con:query("SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL " .. isolation_level )
+   end
+
 end
 
 
