@@ -23,11 +23,15 @@ require("tpcc_run")
 require("tpcc_check")
 
 function thread_init()
+
    drv = sysbench.sql.driver()
    con = drv:connect()
 
    set_isolation_level(drv,con) 
-   con:query("SET autocommit=0")
+
+   if drv:name() == "mysql" then 
+     con:query("SET autocommit=0")
+   end
    
 end
 
@@ -46,11 +50,13 @@ function event()
     trx="stocklevel"
   end
 
--- Repeat transaction execution until success
-  while not pcall(function () _G[trx]() end ) do 
-    con:query("ROLLBACK")
-  end
+-- Execute transaction
+   _G[trx]()
 
+end
+
+function sysbench.hooks.before_restart_event(err)
+  con:query("ROLLBACK")
 end
 
 function sysbench.hooks.report_intermediate(stat)

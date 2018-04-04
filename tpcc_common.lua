@@ -22,6 +22,8 @@ ffi = require("ffi")
 
 ffi.cdef[[
 void sb_counter_inc(int, sb_counter_type);
+typedef uint32_t useconds_t;
+int usleep(useconds_t useconds);
 ]]
 
 
@@ -64,8 +66,11 @@ end
 function cmd_prepare()
    local drv = sysbench.sql.driver()
    local con = drv:connect()
+   local show_query="SHOW TABLES"
 
-   con:query("SET FOREIGN_KEY_CHECKS=0")
+   if drv:name() == "mysql" then 
+      con:query("SET FOREIGN_KEY_CHECKS=0")
+   end
    -- create tables in parallel table per thread
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.tables,
    sysbench.opt.threads do
@@ -73,9 +78,14 @@ function cmd_prepare()
    end
 
    -- make sure all tables are created before we load data
+
+   if drv:name() == "pgsql" then 
+      show_query="select * from pg_catalog.pg_tables where schemaname != 'information_schema' and schemaname != 'pg_catalog'"
+   end
+
    repeat
-       rs = con:query("SHOW TABLES")
-       sleep(1)
+      rs= con:query(show_query)
+      ffi.C.usleep(1000)
    until rs.nrows == sysbench.opt.tables * 9
 
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.scale,
@@ -110,17 +120,19 @@ function create_tables(drv, con, table_num)
    local engine_def = ""
    local extra_table_options = ""
    local query
-
+   local tinyint_type="smallint"
+   local datetime_type="timestamp"   
+   
    if drv:name() == "mysql" or drv:name() == "attachsql" or
       drv:name() == "drizzle"
    then
       engine_def = "/*! ENGINE = " .. sysbench.opt.mysql_storage_engine .. " */"
       extra_table_options = sysbench.opt.mysql_table_options or ""
+      tinyint_type="tinyint"
+      datetime_type="datetime"
    end
 
-
    print(string.format("Creating tables: %d\n", table_num))
-
 
    query = string.format([[
 	CREATE TABLE IF NOT EXISTS warehouse%d (
@@ -141,7 +153,7 @@ function create_tables(drv, con, table_num)
 
    query = string.format([[
 	create table IF NOT EXISTS district%d (
-	d_id tinyint not null, 
+	d_id ]] .. tinyint_type .. [[ not null, 
 	d_w_id smallint not null, 
 	d_name varchar(10), 
 	d_street_1 varchar(20), 
@@ -163,7 +175,7 @@ function create_tables(drv, con, table_num)
    query = string.format([[
 	create table IF NOT EXISTS customer%d (
 	c_id int not null, 
-	c_d_id tinyint not null,
+	c_d_id ]] .. tinyint_type .. [[ not null,
 	c_w_id smallint not null, 
 	c_first varchar(16), 
 	c_middle char(2), 
@@ -174,7 +186,7 @@ function create_tables(drv, con, table_num)
 	c_state char(2), 
 	c_zip char(9), 
 	c_phone char(16), 
-	c_since datetime, 
+	c_since ]] .. datetime_type .. [[, 
 	c_credit char(2), 
 	c_credit_lim bigint, 
 	c_discount decimal(4,2), 
@@ -194,11 +206,11 @@ function create_tables(drv, con, table_num)
    query = string.format([[
 	create table IF NOT EXISTS history%d (
 	h_c_id int, 
-	h_c_d_id tinyint, 
+	h_c_d_id ]] .. tinyint_type .. [[, 
 	h_c_w_id smallint,
-	h_d_id tinyint,
+	h_d_id ]] .. tinyint_type .. [[,
 	h_w_id smallint,
-	h_date datetime,
+	h_date ]] .. datetime_type .. [[,
 	h_amount decimal(6,2), 
 	h_data varchar(24)
 	) %s %s]],
@@ -209,13 +221,13 @@ function create_tables(drv, con, table_num)
    query = string.format([[
 	create table IF NOT EXISTS orders%d (
 	o_id int not null, 
-	o_d_id tinyint not null, 
+	o_d_id ]] .. tinyint_type .. [[ not null, 
 	o_w_id smallint not null,
 	o_c_id int,
-	o_entry_d datetime,
-	o_carrier_id tinyint,
-	o_ol_cnt tinyint, 
-	o_all_local tinyint,
+	o_entry_d ]] .. datetime_type .. [[,
+	o_carrier_id ]] .. tinyint_type .. [[,
+	o_ol_cnt ]] .. tinyint_type .. [[, 
+	o_all_local ]] .. tinyint_type .. [[,
 	PRIMARY KEY(o_w_id, o_d_id, o_id) 
 	) %s %s]],
       table_num, engine_def, extra_table_options)
@@ -227,7 +239,7 @@ function create_tables(drv, con, table_num)
    query = string.format([[
 	create table IF NOT EXISTS new_orders%d (
 	no_o_id int not null,
-	no_d_id tinyint not null,
+	no_d_id ]] .. tinyint_type .. [[ not null,
 	no_w_id smallint not null,
 	PRIMARY KEY(no_w_id, no_d_id, no_o_id)
 	) %s %s]],
@@ -238,13 +250,13 @@ function create_tables(drv, con, table_num)
    query = string.format([[
 	create table IF NOT EXISTS order_line%d ( 
 	ol_o_id int not null, 
-	ol_d_id tinyint not null,
+	ol_d_id ]] .. tinyint_type .. [[ not null,
 	ol_w_id smallint not null,
-	ol_number tinyint not null,
+	ol_number ]] .. tinyint_type .. [[ not null,
 	ol_i_id int, 
 	ol_supply_w_id smallint,
-	ol_delivery_d datetime, 
-	ol_quantity tinyint, 
+	ol_delivery_d ]] .. datetime_type .. [[, 
+	ol_quantity ]] .. tinyint_type .. [[, 
 	ol_amount decimal(6,2), 
 	ol_dist_info char(24),
 	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number)
@@ -311,12 +323,12 @@ function create_tables(drv, con, table_num)
    con:bulk_insert_done()
 
     print(string.format("Adding indexes %d ... \n", i))
-    con:query("CREATE INDEX idx_customer ON customer"..i.." (c_w_id,c_d_id,c_last,c_first)")
-    con:query("CREATE INDEX idx_orders ON orders"..i.." (o_w_id,o_d_id,o_c_id,o_id)")
-    con:query("CREATE INDEX fkey_stock_2 ON stock"..i.." (s_i_id)")
-    con:query("CREATE INDEX fkey_order_line_2 ON order_line"..i.." (ol_supply_w_id,ol_i_id)")
-    con:query("CREATE INDEX fkey_history_1 ON history"..i.." (h_c_w_id,h_c_d_id,h_c_id)")
-    con:query("CREATE INDEX fkey_history_2 ON history"..i.." (h_w_id,h_d_id )")
+    con:query("CREATE INDEX idx_customer"..i.." ON customer"..i.." (c_w_id,c_d_id,c_last,c_first)")
+    con:query("CREATE INDEX idx_orders"..i.." ON orders"..i.." (o_w_id,o_d_id,o_c_id,o_id)")
+    con:query("CREATE INDEX fkey_stock_2"..i.." ON stock"..i.." (s_i_id)")
+    con:query("CREATE INDEX fkey_order_line_2"..i.." ON order_line"..i.." (ol_supply_w_id,ol_i_id)")
+    con:query("CREATE INDEX fkey_history_1"..i.." ON history"..i.." (h_c_w_id,h_c_d_id,h_c_id)")
+    con:query("CREATE INDEX fkey_history_2"..i.." ON history"..i.." (h_w_id,h_d_id )")
     if sysbench.opt.use_fk == 1 then
         print(string.format("Adding FK %d ... \n", i))
         con:query("ALTER TABLE new_orders"..i.." ADD CONSTRAINT fkey_new_orders_1_"..table_num.." FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders"..i.."(o_w_id,o_d_id,o_id)")
@@ -330,7 +342,6 @@ function create_tables(drv, con, table_num)
         con:query("ALTER TABLE stock"..i.." ADD CONSTRAINT fkey_stock_1_"..table_num.." FOREIGN KEY(s_w_id) REFERENCES warehouse"..i.."(w_id)")
         con:query("ALTER TABLE stock"..i.." ADD CONSTRAINT fkey_stock_2_"..table_num.." FOREIGN KEY(s_i_id) REFERENCES item"..i.."(i_id)")
     end
-
 end
 
 
@@ -345,12 +356,24 @@ function set_isolation_level(drv,con)
             isolation_level="SERIALIZABLE"
         end
        
-        rs=con:query("SHOW VARIABLES LIKE 't%_isolation'")
-        row = rs:fetch_row()
-        isolation_variable = row[1]
+        isolation_variable=con:query_row("SHOW VARIABLES LIKE 't%_isolation'")
 
         con:query("SET SESSION " .. isolation_variable .. "='".. isolation_level .."'")
    end
+
+   if drv:name() == "pgsql"
+   then
+        if sysbench.opt.trx_level == "RR" then
+            isolation_level="REPEATABLE READ"
+        elseif sysbench.opt.trx_level == "RC" then
+            isolation_level="READ COMMITTED"
+        elseif sysbench.opt.trx_level == "SER" then
+            isolation_level="SERIALIZABLE"
+        end
+       
+        con:query("SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL " .. isolation_level )
+   end
+
 end
 
 
@@ -465,7 +488,6 @@ function load_tables(drv, con, warehouse_num)
    con:bulk_insert_init("INSERT INTO orders" .. table_num .. [[
 	  (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_carrier_id, o_ol_cnt, o_all_local) values]])
 
-
    a_counts[warehouse_num] = {}
 
    for d_id = 1 , DIST_PER_WARE do
@@ -485,32 +507,6 @@ function load_tables(drv, con, warehouse_num)
    end
 
    con:bulk_insert_done()
-
-   con:query(string.format("INSERT INTO new_orders%d (no_o_id, no_d_id, no_w_id) SELECT o_id, o_d_id, o_w_id FROM orders%d WHERE o_id>2100 and o_w_id=%d", table_num, table_num, warehouse_num))
-
-   con:bulk_insert_init("INSERT INTO order_line" .. table_num .. [[
-	  (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_delivery_d, 
-           ol_quantity, ol_amount, ol_dist_info ) values]])
-
-
-   for d_id = 1 , DIST_PER_WARE do
-   for o_id = 1 , 3000 do
-   for ol_id = 1, a_counts[warehouse_num][d_id][o_id] do 
- 
-      query = string.format([[(%d, %d, %d, %d, %d, %d, %s, 5, %f, '%s' )]],
-	    o_id, d_id, warehouse_num, ol_id, sysbench.rand.uniform(1, MAXITEMS), warehouse_num,
-        o_id < 2101 and "NOW()" or "NULL", 
-        o_id < 2101 and 0 or sysbench.rand.uniform_double()*9999.99,
-	string.rep(sysbench.rand.string("@"),24)
-        )
-      con:bulk_insert_next(query)
-
-   end
-   end 
-   end
-
-   con:bulk_insert_done()
-
 
 -- STOCK table
 
@@ -536,8 +532,33 @@ function load_tables(drv, con, warehouse_num)
       con:bulk_insert_next(query)
 
    end 
- con:bulk_insert_done()
- end
+   con:bulk_insert_done()
+
+   con:query(string.format("INSERT INTO new_orders%d (no_o_id, no_d_id, no_w_id) SELECT o_id, o_d_id, o_w_id FROM orders%d WHERE o_id>2100 and o_w_id=%d", table_num, table_num, warehouse_num))
+
+   con:bulk_insert_init("INSERT INTO order_line" .. table_num .. [[
+	  (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_delivery_d, 
+           ol_quantity, ol_amount, ol_dist_info ) values]])
+
+   for d_id = 1 , DIST_PER_WARE do
+   for o_id = 1 , 3000 do
+   for ol_id = 1, a_counts[warehouse_num][d_id][o_id] do 
+ 
+      query = string.format([[(%d, %d, %d, %d, %d, %d, %s, 5, %f, '%s' )]],
+	    o_id, d_id, warehouse_num, ol_id, sysbench.rand.uniform(1, MAXITEMS), warehouse_num,
+        o_id < 2101 and "NOW()" or "NULL", 
+        o_id < 2101 and 0 or sysbench.rand.uniform_double()*9999.99,
+	string.rep(sysbench.rand.string("@"),24)
+        )
+      res=con:bulk_insert_next(query)
+      
+   end
+   end 
+   end
+
+   con:bulk_insert_done()
+
+  end
 
 end
 
@@ -556,7 +577,9 @@ function cleanup()
    local drv = sysbench.sql.driver()
    local con = drv:connect()
 
-   con:query("SET FOREIGN_KEY_CHECKS=0")
+   if drv:name() == "mysql" then 
+      con:query("SET FOREIGN_KEY_CHECKS=0")
+   end
 
    for i = 1, sysbench.opt.tables do
       print(string.format("Dropping tables '%d'...", i))

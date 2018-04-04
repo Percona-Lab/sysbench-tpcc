@@ -24,10 +24,17 @@ require("tpcc_common")
 
 function check_tables(drv, con, warehouse_num)
 
+    straight_join_hint=","
+    
+    if drv:name() == "mysql" then
+      straight_join_hint = "STRAIGHT_JOIN"
+    end   
+
+
     local pass1 = 1
     for table_num = 1, sysbench.opt.tables do 
         -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
-        rs  = con:query("SELECT d_w_id,sum(d_ytd)-w_ytd diff FROM district"..table_num..",warehouse"..table_num.." where d_w_id=w_id AND w_id="..warehouse_num.." group by d_w_id") 
+        rs  = con:query("SELECT d_w_id,sum(d_ytd)-max(w_ytd) diff FROM district"..table_num..",warehouse"..table_num.." WHERE d_w_id=w_id AND w_id="..warehouse_num.." group by d_w_id") 
         
         for i = 1, rs.nrows do
             row = rs:fetch_row()
@@ -41,6 +48,8 @@ function check_tables(drv, con, warehouse_num)
     
     if pass1 ~= 1 then
         print(string.format("Check 1, warehouse: %d FAILED!!!", warehouse_num))
+    else
+        print(string.format("Check 1, warehouse: %d PASSED", warehouse_num))
     end
 
 -- CHECK 2 
@@ -96,7 +105,13 @@ function check_tables(drv, con, warehouse_num)
     local pass4 = 1
     for table_num = 1, sysbench.opt.tables do 
         -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
-        rs  = con:query(string.format("SELECT count(*) FROM (SELECT o_d_id, SUM(o_ol_cnt) sm1, cn FROM orders%d,(SELECT ol_d_id, COUNT(*) cn FROM order_line%d WHERE ol_w_id=%d GROUP BY ol_d_id) ol WHERE O_w_id=%d AND ol_d_id=o_d_id GROUP BY o_d_id) t1 WHERE sm1<>cn",table_num, table_num, warehouse_num, warehouse_num))
+        rs  = con:query(string.format([[SELECT count(*) 
+                                         FROM (SELECT o_d_id, SUM(o_ol_cnt) sm1, MAX(cn) as cn
+                                                 FROM orders%d,(SELECT ol_d_id, COUNT(*) cn 
+                                                                  FROM order_line%d 
+                                                                 WHERE ol_w_id=%d GROUP BY ol_d_id) ol 
+                                                WHERE o_w_id=%d AND ol_d_id=o_d_id GROUP BY o_d_id) t1 
+                                         WHERE sm1<>cn]],table_num, table_num, warehouse_num, warehouse_num))
         
         for i = 1, rs.nrows do
             row = rs:fetch_row()
@@ -196,7 +211,22 @@ function check_tables(drv, con, warehouse_num)
     local pass10 = 1
     for table_num = 1, sysbench.opt.tables do 
         -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
-        rs  = con:query(string.format("SELECT count(*) FROM (  SELECT  c.c_id, c.c_d_id, c.c_w_id, c.c_balance c1, (SELECT sum(ol_amount) FROM orders%d STRAIGHT_JOIN order_line%d WHERE OL_W_ID=O_W_ID AND OL_D_ID = O_D_ID AND OL_O_ID = O_ID AND OL_DELIVERY_D IS NOT NULL AND O_W_ID=c.c_w_id AND O_D_ID=c.C_D_ID AND O_C_ID=c.C_ID) sm, (SELECT  sum(h_amount)  from  history%d WHERE H_C_W_ID=c.C_W_ID AND H_C_D_ID=c.C_D_ID AND H_C_ID=c.C_ID) smh FROM customer%d c WHERE  c.c_w_id=%d ) t where c1<>sm-smh",table_num, table_num, table_num, table_num, warehouse_num))
+        rs  = con:query(string.format([[SELECT count(*) 
+                                          FROM (  SELECT  c.c_id, c.c_d_id, c.c_w_id, c.c_balance c1, 
+                                                         (SELECT sum(ol_amount) FROM orders%d ]] .. straight_join_hint .. [[ order_line%d 
+                                                           WHERE OL_W_ID=O_W_ID 
+                                                             AND OL_D_ID = O_D_ID 
+                                                             AND OL_O_ID = O_ID 
+                                                             AND OL_DELIVERY_D IS NOT NULL 
+                                                             AND O_W_ID=c.c_w_id 
+                                                             AND O_D_ID=c.C_D_ID 
+                                                             AND O_C_ID=c.C_ID) sm, (SELECT  sum(h_amount)  from  history%d 
+                                                                                      WHERE H_C_W_ID=c.C_W_ID 
+                                                                                        AND H_C_D_ID=c.C_D_ID 
+                                                                                        AND H_C_ID=c.C_ID) smh 
+                                                   FROM customer%d c 
+                                                  WHERE  c.c_w_id=%d ) t 
+                                         WHERE c1<>sm-smh]],table_num, table_num, table_num, table_num, warehouse_num))
         
         for i = 1, rs.nrows do
             row = rs:fetch_row()
@@ -216,7 +246,11 @@ function check_tables(drv, con, warehouse_num)
     local pass12 = 1
     for table_num = 1, sysbench.opt.tables do 
         -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
-        rs  = con:query(string.format("SELECT count(*) FROM (SELECT  c.c_id, c.c_d_id, c.c_balance c1, c_ytd_payment, (SELECT sum(ol_amount) FROM orders%d STRAIGHT_JOIN order_line%d WHERE OL_W_ID=O_W_ID AND OL_D_ID = O_D_ID AND OL_O_ID = O_ID AND OL_DELIVERY_D IS NOT NULL AND O_W_ID=c.c_w_id AND O_D_ID=c.C_D_ID AND O_C_ID=c.C_ID) sm FROM customer%d c WHERE  c.c_w_id=%d) t1 WHERE c1+c_ytd_payment <> sm " ,table_num, table_num, table_num, warehouse_num))
+        rs  = con:query(string.format([[SELECT count(*) FROM (SELECT  c.c_id, c.c_d_id, c.c_balance c1, c_ytd_payment, 
+                                         (SELECT sum(ol_amount) FROM orders%d ]] .. straight_join_hint .. [[ order_line%d 
+                                         WHERE OL_W_ID=O_W_ID AND OL_D_ID = O_D_ID AND OL_O_ID = O_ID AND OL_DELIVERY_D IS NOT NULL AND 
+                                         O_W_ID=c.c_w_id AND O_D_ID=c.C_D_ID AND O_C_ID=c.C_ID) sm FROM customer%d c WHERE  c.c_w_id=%d) t1 
+                                         WHERE c1+c_ytd_payment <> sm ]] ,table_num, table_num, table_num, warehouse_num))
         
         for i = 1, rs.nrows do
             row = rs:fetch_row()
