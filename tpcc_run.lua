@@ -501,6 +501,7 @@ function orderstatus()
   ORDER BY o_id DESC;
 -]]
       local o_id
+
       o_id = con:query_row(([[SELECT o_id, o_carrier_id, o_entry_d
                                 FROM orders%d 
                                WHERE o_w_id = %d 
@@ -508,6 +509,21 @@ function orderstatus()
                                  AND o_c_id = %d 
                                   ORDER BY o_id DESC]]):
                              format(table_num, w_id, d_id, c_id))
+
+--      rs = con:query(([[SELECT o_id, o_carrier_id, o_entry_d
+--                                FROM orders%d 
+--                              WHERE o_w_id = %d 
+--                                 AND o_d_id = %d 
+--                                 AND o_c_id = %d 
+--                                  ORDER BY o_id DESC]]):
+--                             format(table_num, w_id, d_id, c_id))
+--     if rs.nrows == 0 then
+--	print(string.format("Error o_id %d, %d, %d, %d\n", table_num , w_id , d_id , c_id))
+--     end
+--    for i = 1,  rs.nrows do
+--        row = rs:fetch_row()
+--	o_id= row[1] 
+--    end
 
 --		SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,
 --                       ol_delivery_d
@@ -725,6 +741,55 @@ function stocklevel()
 
     con:query("COMMIT")
 
+end
+
+-- function purge to remove all orders, this is useful if we want to limit data directory in size
+
+function purge()
+    for i = 1, 10 do
+    local table_num = sysbench.rand.uniform(1, sysbench.opt.tables)
+    local w_id = sysbench.rand.uniform(1, sysbench.opt.scale)
+    local d_id = sysbench.rand.uniform(1, DIST_PER_WARE)
+
+    con:query("BEGIN")
+
+        local m_o_id
+        
+        rs = con:query(([[SELECT min(no_o_id) mo
+                                     FROM new_orders%d 
+                                    WHERE no_w_id = %d AND no_d_id = %d]])
+                                   :format(table_num, w_id, d_id))
+
+        if (rs.nrows > 0) then
+          m_o_id=unpack(rs:fetch_row(), 1, rs.nfields)
+        end
+
+        if (m_o_id ~= nil ) then 
+-- select o_id,o.o_d_id from orders2 o, (select o_c_id,o_w_id,o_d_id,count(distinct o_id) from orders2 where o_w_id=1  and o_id > 2100 and o_id < 11153 group by o_c_id,o_d_id,o_w_id having count( distinct o_id) > 1 limit 1) t where t.o_w_id=o.o_w_id and t.o_d_id=o.o_d_id and t.o_c_id=o.o_c_id limit 1;
+	-- find an order to delete
+        rs = con:query(([[SELECT o_id FROM orders%d o, (SELECT o_c_id,o_w_id,o_d_id,count(distinct o_id) FROM orders%d WHERE o_w_id=%d AND o_d_id=%d AND o_id > 2100 AND o_id < %d GROUP BY o_c_id,o_d_id,o_w_id having count( distinct o_id) > 1 limit 1) t WHERE t.o_w_id=o.o_w_id and t.o_d_id=o.o_d_id and t.o_c_id=o.o_c_id limit 1 ]])
+                                   :format(table_num, table_num, w_id, d_id, m_o_id))
+	
+        local del_o_id
+        if (rs.nrows > 0) then
+          del_o_id=unpack(rs:fetch_row(), 1, rs.nfields)
+        end
+
+        if (del_o_id ~= nil ) then 
+        
+        con:query(([[DELETE FROM order_line%d where ol_w_id=%d AND ol_d_id=%d AND ol_o_id=%d]])
+                            :format(table_num, w_id, d_id, del_o_id))
+        con:query(([[DELETE FROM orders%d where o_w_id=%d AND o_d_id=%d and o_id=%d]])
+                            :format(table_num, w_id, d_id, del_o_id))
+        con:query(([[DELETE FROM history%d where h_w_id=%d AND h_d_id=%d LIMIT 10]])
+                            :format(table_num, w_id, d_id ))
+
+	end
+
+        end
+        
+    con:query("COMMIT")
+    end
 end
 
 -- vim:ts=4 ss=4 sw=4 expandtab

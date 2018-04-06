@@ -37,7 +37,8 @@ end
 
 function event()
   -- print( NURand (1023,1,3000))
-  local trx_type = sysbench.rand.uniform(1,23)
+  local max_trx =  sysbench.opt.enable_purge == "yes" and 24 or 23
+  local trx_type = sysbench.rand.uniform(1,max_trx)
   if trx_type <= 10 then
     trx="new_order"
   elseif trx_type <= 20 then
@@ -48,6 +49,8 @@ function event()
     trx="delivery"
   elseif trx_type <= 23 then
     trx="stocklevel"
+  elseif trx_type <= 24 then
+    trx="purge"
   end
 
 -- Execute transaction
@@ -61,7 +64,11 @@ end
 
 function sysbench.hooks.report_intermediate(stat)
 -- --   print("my stat: ", val)
-   sysbench.report_csv(stat)
+   if  sysbench.opt.report_csv == "yes" then
+   	sysbench.report_csv(stat)
+   else
+   	sysbench.report_default(stat)
+   end
 end
 
 

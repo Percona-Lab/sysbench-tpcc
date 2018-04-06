@@ -51,6 +51,10 @@ sysbench.cmdline.options = {
       {"Use foreign keys", 1},
    trx_level =
       {"Transaction isolation level (RC, RR or SER)", "RR"},
+   enable_purge =
+      {"Use purge transaction (yes, no)", "no"},
+   report_csv =
+      {"Report output in csv (yes, no)", "no"},
    mysql_storage_engine =
       {"Storage engine, if MySQL is used", "innodb"},
    mysql_table_options =
