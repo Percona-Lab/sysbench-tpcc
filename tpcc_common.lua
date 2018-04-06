@@ -587,15 +587,15 @@ function cleanup()
 
    for i = 1, sysbench.opt.tables do
       print(string.format("Dropping tables '%d'...", i))
-      con:query("DROP TABLE IF EXISTS stock" .. i )
-      con:query("DROP TABLE IF EXISTS warehouse" .. i )
-      con:query("DROP TABLE IF EXISTS district" .. i )
-      con:query("DROP TABLE IF EXISTS customer" .. i )
       con:query("DROP TABLE IF EXISTS history" .. i )
       con:query("DROP TABLE IF EXISTS new_orders" .. i )
-      con:query("DROP TABLE IF EXISTS orders" .. i )
       con:query("DROP TABLE IF EXISTS order_line" .. i )
+      con:query("DROP TABLE IF EXISTS orders" .. i )
+      con:query("DROP TABLE IF EXISTS customer" .. i )
+      con:query("DROP TABLE IF EXISTS district" .. i )
+      con:query("DROP TABLE IF EXISTS stock" .. i )
       con:query("DROP TABLE IF EXISTS item" .. i )
+      con:query("DROP TABLE IF EXISTS warehouse" .. i )
    end
 end
 
