@@ -191,7 +191,7 @@ function check_tables(drv, con, warehouse_num)
     local pass9 = 1
     for table_num = 1, sysbench.opt.tables do 
         -- print(string.format("Checking  tables: %d for warehouse: %d\n", table_num, warehouse_num))
-        rs  = con:query(string.format("SELECT COUNT(*) FROM (select d_id,d_w_id,sum(d_ytd) s1 from district%d group by d_id,d_w_id) d,(select h_d_id,h_w_id,sum(h_amount) s2 from history%d group by h_d_id, h_w_id) h WHERE h_d_id=d_id AND d_w_id=h_w_id and d_w_id=%d and s1<>s2",table_num, table_num, warehouse_num))
+        rs  = con:query(string.format("SELECT COUNT(*) FROM (select d_id,d_w_id,sum(d_ytd) s1 from district%d group by d_id,d_w_id) d,(select h_d_id,h_w_id,sum(h_amount) s2 from history%d WHERE  h_w_id=%d group by h_d_id, h_w_id) h WHERE h_d_id=d_id AND d_w_id=h_w_id and d_w_id=%d and s1<>s2",table_num, table_num, warehouse_num, warehouse_num))
         
         for i = 1, rs.nrows do
             row = rs:fetch_row()
