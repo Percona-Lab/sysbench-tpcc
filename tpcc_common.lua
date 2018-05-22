@@ -49,6 +49,8 @@ sysbench.cmdline.options = {
       {"Number of tables", 1},
    use_fk =
       {"Use foreign keys", 1},
+   force_pk =
+      {"Force using auto-inc PK on history table", 0},
    trx_level =
       {"Transaction isolation level (RC, RR or SER)", "RR"},
    enable_purge =
@@ -237,9 +239,15 @@ function create_tables(drv, con, table_num)
    con:query(query)
 
 -- HISTORY TABLE
-
+   local hist_auto_inc=""
+   local hist_pk=""
+   if sysbench.opt.force_pk == 1 then
+      hist_auto_inc="id int NOT NULL AUTO_INCREMENT,"
+      hist_pk=",PRIMARY KEY(id)"
+   end
    query = string.format([[
 	create table IF NOT EXISTS history%d (
+        %s
 	h_c_id int, 
 	h_c_d_id ]] .. tinyint_type .. [[, 
 	h_c_w_id smallint,
@@ -247,9 +255,9 @@ function create_tables(drv, con, table_num)
 	h_w_id smallint,
 	h_date ]] .. datetime_type .. [[,
 	h_amount decimal(6,2), 
-	h_data varchar(24)
+	h_data varchar(24) %s
 	) %s %s]],
-      table_num, engine_def, extra_table_options)
+      table_num, hist_auto_inc, hist_pk, engine_def, extra_table_options)
 
    con:query(query)
 
