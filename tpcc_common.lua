@@ -76,54 +76,18 @@ function cmd_prepare()
 
    if drv:name() == "mysql" then 
       con:query("SET FOREIGN_KEY_CHECKS=0")
-      query = string.format([[
-	CREATE TABLE IF NOT EXISTS aux_sync (
-	table_id int not null,
-	active smallint not null default 1 ,
-	primary key (table_id) 
-	)]])
-
-      con:query(query)
    end
 
    -- create tables in parallel table per thread
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.tables,
    sysbench.opt.threads do
-     if drv:name() == "mysql" then 
-       con:query("INSERT INTO aux_sync (table_id) VALUES ("..i..") ON DUPLICATE KEY UPDATE active=1")
-     end
      create_tables(drv, con, i)
    end
 
    -- make sure all tables are created before we load data
 
-   print("Waiting on tables\n")
-
-   if drv:name() == "mysql" then 
-
-   local aux_cnt
-   local aux_active
-   while (true)
-   do
-      aux_cnt, aux_active= con:query_row("SELECT COUNT(*), SUM(active) FROM aux_sync")
-      ffi.C.usleep(10000)
-      --print(sysbench.tid..": got "..aux_cnt.." and "..aux_active.."\n")
-      if (tonumber(aux_active) == 0 and tonumber(aux_cnt)==sysbench.opt.tables) then
-	 -- print ("!!!!!!!!!!!!!!!")
-         break
-      end
-   end
-
-   end
-
-   if drv:name() == "pgsql" then 
-      show_query="select * from pg_catalog.pg_indexes where schemaname != 'information_schema' and schemaname != 'pg_catalog'"
-
-   repeat
-      rs= con:query(show_query)
-      ffi.C.usleep(1000)
-   until rs.nrows == sysbench.opt.tables * 14
-   end
+   print("Waiting on tables 10 sec\n")
+   sleep(10)
 
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.scale,
    sysbench.opt.threads do
@@ -386,9 +350,6 @@ function create_tables(drv, con, table_num)
         con:query("ALTER TABLE stock"..i.." ADD CONSTRAINT fkey_stock_2_"..table_num.." FOREIGN KEY(s_i_id) REFERENCES item"..i.."(i_id)")
     end
 
-   if drv:name() == "mysql" then 
-     con:query("UPDATE aux_sync SET active=0 WHERE table_id="..table_num)
-   end
 end
 
 
