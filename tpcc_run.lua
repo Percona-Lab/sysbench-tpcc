@@ -670,7 +670,7 @@ function stocklevel()
 --  case1 - specification
 --  case2 - modified/simplified
 
-    local stock_level_queries="case2" 
+    local stock_level_queries="case1" 
     local d_next_o_id
     
 
