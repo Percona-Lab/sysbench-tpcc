@@ -1,6 +1,7 @@
 # sysbench-tpcc
 
-TPCC-like workload for sysbench
+TPCC-like workload for sysbench 1.0.x.
+**Make sure you are using sysbench 1.0.14 or better!**
 
 # prepare data and tables
 
