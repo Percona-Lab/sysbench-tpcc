@@ -52,7 +52,7 @@ sysbench.cmdline.options = {
    force_pk =
       {"Force using auto-inc PK on history table", 0},
    trx_level =
-      {"Transaction isolation level (RC, RR or SER)", "RC"},
+      {"Transaction isolation level (RC, RR or SER)", "RR"},
    enable_purge =
       {"Use purge transaction (yes, no)", "no"},
    report_csv =
