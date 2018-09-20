@@ -24,6 +24,21 @@ dbname=postgres
 ```
 ./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql prepare
 ```
+  
+or disable foreign key   
+  
+```
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 prepare
+```
+  
+or use custom tablespace   
+  
+```
+export pgsql_table_options="tablespace tbs1"
+export pgsql_index_options="tablespace tbs2"
+
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql prepare
+```
 
 ## PostgreSQL: Run benchmark
 ```

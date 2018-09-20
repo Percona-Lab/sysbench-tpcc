@@ -119,7 +119,10 @@ sysbench.cmdline.commands = {
 function create_tables(drv, con, table_num)
    local id_index_def, id_def
    local engine_def = ""
-   local extra_table_options = ""
+--   local extra_table_options = ""
+--   local extra_index_options = ""
+   local extra_table_options = os.getenv("pgsql_table_options") or ""
+   local extra_index_options = os.getenv("pgsql_index_options") or ""
    local query
    local tinyint_type="smallint"
    local datetime_type="timestamp"   
@@ -330,12 +333,18 @@ function create_tables(drv, con, table_num)
    con:bulk_insert_done()
 
     print(string.format("Adding indexes %d ... \n", i))
-    con:query("CREATE INDEX idx_customer"..i.." ON customer"..i.." (c_w_id,c_d_id,c_last,c_first)")
-    con:query("CREATE INDEX idx_orders"..i.." ON orders"..i.." (o_w_id,o_d_id,o_c_id,o_id)")
-    con:query("CREATE INDEX fkey_stock_2"..i.." ON stock"..i.." (s_i_id)")
-    con:query("CREATE INDEX fkey_order_line_2"..i.." ON order_line"..i.." (ol_supply_w_id,ol_i_id)")
-    con:query("CREATE INDEX fkey_history_1"..i.." ON history"..i.." (h_c_w_id,h_c_d_id,h_c_id)")
-    con:query("CREATE INDEX fkey_history_2"..i.." ON history"..i.." (h_w_id,h_d_id )")
+    -- con:query("CREATE INDEX idx_customer"..i.." ON customer"..i.." (c_w_id,c_d_id,c_last,c_first)")
+    -- con:query("CREATE INDEX idx_orders"..i.." ON orders"..i.." (o_w_id,o_d_id,o_c_id,o_id)")
+    -- con:query("CREATE INDEX fkey_stock_2"..i.." ON stock"..i.." (s_i_id)")
+    -- con:query("CREATE INDEX fkey_order_line_2"..i.." ON order_line"..i.." (ol_supply_w_id,ol_i_id)")
+    -- con:query("CREATE INDEX fkey_history_1"..i.." ON history"..i.." (h_c_w_id,h_c_d_id,h_c_id)")
+    -- con:query("CREATE INDEX fkey_history_2"..i.." ON history"..i.." (h_w_id,h_d_id )")
+    con:query("CREATE INDEX idx_customer"..i.." ON customer"..i.." (c_w_id,c_d_id,c_last,c_first) "..extra_index_options)
+    con:query("CREATE INDEX idx_orders"..i.." ON orders"..i.." (o_w_id,o_d_id,o_c_id,o_id) "..extra_index_options)
+    con:query("CREATE INDEX fkey_stock_2"..i.." ON stock"..i.." (s_i_id) "..extra_index_options)
+    con:query("CREATE INDEX fkey_order_line_2"..i.." ON order_line"..i.." (ol_supply_w_id,ol_i_id) "..extra_index_options)
+    con:query("CREATE INDEX fkey_history_1"..i.." ON history"..i.." (h_c_w_id,h_c_d_id,h_c_id) "..extra_index_options)
+    con:query("CREATE INDEX fkey_history_2"..i.." ON history"..i.." (h_w_id,h_d_id ) "..extra_index_options)
     if sysbench.opt.use_fk == 1 then
         print(string.format("Adding FK %d ... \n", i))
         con:query("ALTER TABLE new_orders"..i.." ADD CONSTRAINT fkey_new_orders_1_"..table_num.." FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders"..i.."(o_w_id,o_d_id,o_id)")
