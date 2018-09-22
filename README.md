@@ -44,7 +44,7 @@ or use zheap custom storage_engine
   
 ```
 export pgsql_table_options="with (storage_engine='zheap') tablespace tbs1"
-export pgsql_index_options="with (storage_engine='zheap') tablespace tbs2"
+export pgsql_index_options="tablespace tbs2"
 
 ./tpcc.lua --pgsql-host=/tmp --pgsql-port=4001 --pgsql-user=postgres --pgsql-db=postgres --threads=64 --tables=20 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 prepare
 ```
