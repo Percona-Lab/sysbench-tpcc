@@ -22,13 +22,13 @@ dbname=postgres
 
 ## PostgreSQL: prepare data and tables
 ```
-./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql prepare
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --threads=64 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql prepare
 ```
   
 or disable foreign key   
   
 ```
-./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 prepare
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --threads=64 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 prepare
 ```
   
 or use custom tablespace   
@@ -37,17 +37,26 @@ or use custom tablespace
 export pgsql_table_options="tablespace tbs1"
 export pgsql_index_options="tablespace tbs2"
 
-./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql prepare
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --threads=64 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 prepare
 ```
+  
+or use zheap custom storage_engine   
+  
+```
+export pgsql_table_options="with (storage_engine='zheap') tablespace tbs1"
+export pgsql_index_options="with (storage_engine='zheap') tablespace tbs2"
 
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=4001 --pgsql-user=postgres --pgsql-db=postgres --threads=64 --tables=20 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 prepare
+```
+  
 ## PostgreSQL: Run benchmark
 ```
-./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql run
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 run
 ```
 
 ## PostgreSQL: Cleanup
 ```
-./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql cleanup
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 cleanup
 ```
 
 # for MySQL
