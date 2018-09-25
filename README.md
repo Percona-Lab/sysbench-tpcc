@@ -51,7 +51,7 @@ export pgsql_index_options="tablespace tbs2"
   
 ## PostgreSQL: Run benchmark
 ```
-./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 run
+./tpcc.lua --pgsql-host=/tmp --pgsql-port=1921 --pgsql-user=postgres --pgsql-db=postgres --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --trx_level=RC --db-ps-mode=auto --db-driver=pgsql --use_fk=0 --enable_purge=yes run
 ```
 
 ## PostgreSQL: Cleanup
@@ -83,3 +83,29 @@ export pgsql_index_options="tablespace tbs2"
 `
 ./tpcc.lua --mysql-socket=/tmp/mysql.sock --mysql-user=root --mysql-db=sbt --time=300 --threads=64 --report-interval=1 --tables=10 --scale=100 --db-driver=mysql cleanup
 `
+  
+# options
+```
+-- Command line options
+sysbench.cmdline.options = {
+   scale =
+      {"Scale factor (warehouses)", 100},
+   tables =
+      {"Number of tables", 1},
+   use_fk =
+      {"Use foreign keys", 1},
+   force_pk =
+      {"Force using auto-inc PK on history table", 0},
+   trx_level =
+      {"Transaction isolation level (RC, RR or SER)", "RC"},
+   enable_purge =
+      {"Use purge transaction (yes, no)", "no"},
+   report_csv =
+      {"Report output in csv (yes, no)", "no"},
+   mysql_storage_engine =
+      {"Storage engine, if MySQL is used", "innodb"},
+   mysql_table_options =
+      {"Extra table options, if MySQL is used. e.g. 'COLLATE latin1_bin'", ""}
+}
+```
+  
