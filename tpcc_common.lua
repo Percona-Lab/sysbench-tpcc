@@ -138,6 +138,24 @@ function create_tables(drv, con, table_num)
 
    print(string.format("Creating tables: %d\n", table_num))
 
+
+   if drv:name() == "pgsql"
+   then
+   query = string.format([[
+    CREATE TABLE IF NOT EXISTS warehouse%d (
+    w_id smallint not null,
+    w_name varchar(10),
+    w_street_1 varchar(20),
+    w_street_2 varchar(20),
+    w_city varchar(20),
+    w_state char(2),
+    w_zip char(9),
+    w_tax float8,
+    w_ytd float8,
+    primary key (w_id)
+    ) %s %s]],
+        table_num, engine_def, extra_table_options)
+   else
    query = string.format([[
 	CREATE TABLE IF NOT EXISTS warehouse%d (
 	w_id smallint not null,
@@ -152,9 +170,29 @@ function create_tables(drv, con, table_num)
 	primary key (w_id) 
 	) %s %s]],
         table_num, engine_def, extra_table_options)
+   end
 
    con:query(query)
 
+   if drv:name() == "pgsql"
+   then
+   query = string.format([[
+    create table IF NOT EXISTS district%d (
+    d_id ]] .. tinyint_type .. [[ not null,
+    d_w_id smallint not null,
+    d_name varchar(10),
+    d_street_1 varchar(20),
+    d_street_2 varchar(20),
+    d_city varchar(20),
+    d_state char(2),
+    d_zip char(9),
+    d_tax float8,
+    d_ytd float8,
+    d_next_o_id int,
+    primary key (d_w_id, d_id)
+    ) %s %s]],
+      table_num, engine_def, extra_table_options)
+   else
    query = string.format([[
 	create table IF NOT EXISTS district%d (
 	d_id ]] .. tinyint_type .. [[ not null, 
@@ -171,11 +209,41 @@ function create_tables(drv, con, table_num)
 	primary key (d_w_id, d_id) 
 	) %s %s]],
       table_num, engine_def, extra_table_options)
+   end
 
     con:query(query)
 
 -- CUSTOMER TABLE
 
+   if drv:name() == "pgsql"
+   then
+   query = string.format([[
+    create table IF NOT EXISTS customer%d (
+    c_id int not null,
+    c_d_id ]] .. tinyint_type .. [[ not null,
+    c_w_id smallint not null,
+    c_first varchar(16),
+    c_middle char(2),
+    c_last varchar(16),
+    c_street_1 varchar(20),
+    c_street_2 varchar(20),
+    c_city varchar(20),
+    c_state char(2),
+    c_zip char(9),
+    c_phone char(16),
+    c_since ]] .. datetime_type .. [[,
+    c_credit char(2),
+    c_credit_lim bigint,
+    c_discount float8,
+    c_balance float8,
+    c_ytd_payment float8,
+    c_payment_cnt smallint,
+    c_delivery_cnt smallint,
+    c_data text,
+    PRIMARY KEY(c_w_id, c_d_id, c_id)
+    ) %s %s]],
+      table_num, engine_def, extra_table_options)
+   else
    query = string.format([[
 	create table IF NOT EXISTS customer%d (
 	c_id int not null, 
@@ -202,6 +270,7 @@ function create_tables(drv, con, table_num)
 	PRIMARY KEY(c_w_id, c_d_id, c_id)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
+   end
 
    con:query(query)
 
@@ -212,6 +281,23 @@ function create_tables(drv, con, table_num)
       hist_auto_inc="id int NOT NULL AUTO_INCREMENT,"
       hist_pk=",PRIMARY KEY(id)"
    end
+
+   if drv:name() == "pgsql"
+   then
+   query = string.format([[
+    create table IF NOT EXISTS history%d (
+        %s
+    h_c_id int,
+    h_c_d_id ]] .. tinyint_type .. [[,
+    h_c_w_id smallint,
+    h_d_id ]] .. tinyint_type .. [[,
+    h_w_id smallint,
+    h_date ]] .. datetime_type .. [[,
+    h_amount float8,
+    h_data varchar(24) %s
+    ) %s %s]],
+      table_num, hist_auto_inc, hist_pk, engine_def, extra_table_options)
+   else
    query = string.format([[
 	create table IF NOT EXISTS history%d (
         %s
@@ -225,6 +311,7 @@ function create_tables(drv, con, table_num)
 	h_data varchar(24) %s
 	) %s %s]],
       table_num, hist_auto_inc, hist_pk, engine_def, extra_table_options)
+   end
 
    con:query(query)
 
@@ -257,6 +344,24 @@ function create_tables(drv, con, table_num)
 
    con:query(query)
 
+   if drv:name() == "pgsql"
+   then
+   query = string.format([[
+    create table IF NOT EXISTS order_line%d (
+    ol_o_id int not null,
+    ol_d_id ]] .. tinyint_type .. [[ not null,
+    ol_w_id smallint not null,
+    ol_number ]] .. tinyint_type .. [[ not null,
+    ol_i_id int,
+    ol_supply_w_id smallint,
+    ol_delivery_d ]] .. datetime_type .. [[,
+    ol_quantity ]] .. tinyint_type .. [[,
+    ol_amount float8,
+    ol_dist_info char(24),
+    PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number)
+    ) %s %s]],
+      table_num, engine_def, extra_table_options)
+   else
    query = string.format([[
 	create table IF NOT EXISTS order_line%d ( 
 	ol_o_id int not null, 
@@ -272,11 +377,37 @@ function create_tables(drv, con, table_num)
 	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
+   end
 
    con:query(query)
 
 -- STOCK table
 
+   if drv:name() == "pgsql"
+   then
+   query = string.format([[
+    create table IF NOT EXISTS stock%d (
+    s_i_id int not null,
+    s_w_id smallint not null,
+    s_quantity smallint,
+    s_dist_01 char(24),
+    s_dist_02 char(24),
+    s_dist_03 char(24),
+    s_dist_04 char(24),
+    s_dist_05 char(24),
+    s_dist_06 char(24),
+    s_dist_07 char(24),
+    s_dist_08 char(24),
+    s_dist_09 char(24),
+    s_dist_10 char(24),
+    s_ytd float8,
+    s_order_cnt smallint,
+    s_remote_cnt smallint,
+    s_data varchar(50),
+    PRIMARY KEY(s_w_id, s_i_id)
+    ) %s %s]],
+      table_num, engine_def, extra_table_options)
+   else
    query = string.format([[
 	create table IF NOT EXISTS stock%d (
 	s_i_id int not null, 
@@ -299,11 +430,25 @@ function create_tables(drv, con, table_num)
 	PRIMARY KEY(s_w_id, s_i_id)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
+   end
 
    con:query(query)
 
    local i = table_num
 
+   if drv:name() == "pgsql"
+   then
+   query = string.format([[
+    create table IF NOT EXISTS item%d (
+    i_id int not null,
+    i_im_id int,
+    i_name varchar(24),
+    i_price float8,
+    i_data varchar(50),
+    PRIMARY KEY(i_id)
+    ) %s %s]],
+      i, engine_def, extra_table_options)
+   else
    query = string.format([[
 	create table IF NOT EXISTS item%d (
 	i_id int not null, 
@@ -314,6 +459,7 @@ function create_tables(drv, con, table_num)
 	PRIMARY KEY(i_id) 
 	) %s %s]],
       i, engine_def, extra_table_options)
+   end
 
    con:query(query)
 
