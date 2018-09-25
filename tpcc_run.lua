@@ -804,8 +804,10 @@ end
 -- function purge to remove all orders, this is useful if we want to limit data directory in size
 
 function purge()
-    for i = 1, 10 do
-    local table_num = sysbench.rand.uniform(1, sysbench.opt.tables)
+    -- for i = 1, 10 do
+    -- local table_num = sysbench.rand.uniform(1, sysbench.opt.tables)
+    for i = 1, sysbench.opt.tables do
+    local table_num = i
     local w_id = sysbench.rand.uniform(1, sysbench.opt.scale)
     local d_id = sysbench.rand.uniform(1, DIST_PER_WARE)
 
