@@ -88,13 +88,13 @@ function thread_init()
                     format(table_num, table_num))
 
 
-       con:query(([[prepare p_new_order9_%d(int4,int2,int2,int2,int4,int2,int2,numeric,text) as INSERT INTO order_line%d
+       con:query(([[prepare p_new_order9_%d(int4,int2,int2,int2,int4,int2,int2,float8,text) as INSERT INTO order_line%d
                                  (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info)
                           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)]]):
                           format(table_num, table_num))
 
        
-       con:query(([[prepare p_payment1_%d(numeric,int2) as UPDATE warehouse%d
+       con:query(([[prepare p_payment1_%d(float8,int2) as UPDATE warehouse%d
                   SET w_ytd = w_ytd + $1 
                 WHERE w_id = $2]]):format(table_num, table_num))
   
@@ -102,7 +102,7 @@ function thread_init()
                                              FROM warehouse%d  
                                             WHERE w_id = $1]]):format(table_num, table_num))
        
-       con:query(([[prepare p_payment3_%d(numeric,int2,int2) as UPDATE district%d 
+       con:query(([[prepare p_payment3_%d(float8,int2,int2) as UPDATE district%d 
                  SET d_ytd = d_ytd + $1 
                WHERE d_w_id = $2 
                  AND d_id= $3]]):format(table_num, table_num))
@@ -139,21 +139,21 @@ function thread_init()
                                      AND c_id= $3]]):
                                   format(table_num, table_num))
        
-       con:query(([[prepare p_payment9_%d(numeric,numeric,text,int2,int2,int4) as UPDATE customer%d
+       con:query(([[prepare p_payment9_%d(float8,float8,text,int2,int2,int4) as UPDATE customer%d
                         SET c_balance=$1, c_ytd_payment=$2, c_data=$3
                       WHERE c_w_id = $4 
                         AND c_d_id = $5
                         AND c_id = $6]])
                   :format(table_num, table_num  ))
 
-       con:query(([[prepare p_payment10_%d(numeric,numeric,int2,int2,int4) as UPDATE customer%d
+       con:query(([[prepare p_payment10_%d(float8,float8,int2,int2,int4) as UPDATE customer%d
                         SET c_balance=$1, c_ytd_payment=$2
                       WHERE c_w_id = $3 
                         AND c_d_id = $4
                         AND c_id = $5]])
                   :format(table_num, table_num  ))
 
-       con:query(([[prepare p_payment11_%d(int2,int2,int4,int2,int2,numeric,text) as INSERT INTO history%d
+       con:query(([[prepare p_payment11_%d(int2,int2,int4,int2,int2,float8,text) as INSERT INTO history%d
                            (h_c_d_id, h_c_w_id, h_c_id, h_d_id,  h_w_id, h_date, h_amount, h_data)
                     VALUES ($1,$2,$3,$4,$5,NOW(),$6,$7)]])
             :format(table_num, table_num))
@@ -236,7 +236,7 @@ function thread_init()
                                       :format(table_num, table_num))
 
 
-        con:query(([[prepare p_delivery7_%d(numeric,int4,int2,int2) as UPDATE customer%d 
+        con:query(([[prepare p_delivery7_%d(float8,int4,int2,int2) as UPDATE customer%d 
                         SET c_balance = c_balance + $1,
                             c_delivery_cnt = c_delivery_cnt + 1
                       WHERE c_id = $2 
