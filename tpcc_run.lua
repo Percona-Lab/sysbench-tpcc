@@ -709,17 +709,18 @@ function stocklevel()
 
 
     else
-
     rs = con:query(([[SELECT DISTINCT ol_i_id FROM order_line%d
                WHERE ol_w_id = %d AND ol_d_id = %d
                  AND ol_o_id < %d AND ol_o_id >= %d]])
                 :format(table_num, w_id, d_id, d_next_o_id, d_next_o_id - 20 ))
 
-    local ol_i_id
+    local ol_i_id = {}
 
     for i = 1, rs.nrows do
-        ol_i_id = unpack(rs:fetch_row(), 1, rs.nfields)
+        ol_i_id[i] = unpack(rs:fetch_row(), 1, rs.nfields)
+    end
 
+    for i = 1, #ol_i_id do
 
 --       SELECT count(*) INTO :i_count
 --                      FROM stock
@@ -727,13 +728,13 @@ function stocklevel()
 --                      AND s_i_id = :ol_i_id
 --                      AND s_quantity < :level;*/
 
-        rs1 = con:query(([[SELECT count(*) FROM stock%d
+        rs = con:query(([[SELECT count(*) FROM stock%d
                    WHERE s_w_id = %d AND s_i_id = %d
                    AND s_quantity < %d]])
-                :format(table_num, w_id, ol_i_id, level ) )
+                :format(table_num, w_id, ol_i_id[i], level ) )
         local cnt
-        for i = 1, rs1.nrows do
-            cnt = unpack(rs1:fetch_row(), 1, rs1.nfields)
+        for i = 1, rs.nrows do
+            cnt = unpack(rs:fetch_row(), 1, rs.nfields)
         end
 
     end
