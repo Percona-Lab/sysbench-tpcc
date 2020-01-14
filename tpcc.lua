@@ -23,16 +23,7 @@ require("tpcc_run")
 require("tpcc_check")
 
 function thread_init()
-
-   drv = sysbench.sql.driver()
-   con = drv:connect()
-
-   set_isolation_level(drv,con) 
-
-   if drv:name() == "mysql" then 
-     con:query("SET autocommit=0")
-   end
-   
+   drv,con=db_connection_init()
 end
 
 function event()
