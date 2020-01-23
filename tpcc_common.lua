@@ -57,6 +57,8 @@ sysbench.cmdline.options = {
       {"Use purge transaction (yes, no)", "no"},
    report_csv =
       {"Report output in csv (yes, no)", "no"},
+   pgsql_schema =
+      {"Schema name for Pg(default:public)", "public"},
    mysql_storage_engine =
       {"Storage engine, if MySQL is used", "innodb"},
    mysql_table_options =
@@ -67,16 +69,30 @@ function sleep(n)
   os.execute("sleep " .. tonumber(n))
 end
 
--- Create the tables and Prepare the dataset. This command supports parallel execution, i.e. will
--- benefit from executing with --threads > 1 as long as --scale > 1
-function cmd_prepare()
-   local drv = sysbench.sql.driver()
-   local con = drv:connect()
-   local show_query="SHOW TABLES"
+function db_connection_init()
+   drv = sysbench.sql.driver()
+   con = drv:connect()
+
+   set_isolation_level(drv,con)
 
    if drv:name() == "mysql" then 
       con:query("SET FOREIGN_KEY_CHECKS=0")
+      con:query("SET autocommit=0")
    end
+
+   if drv:name() == "pgsql" then
+     con:query("SET search_path TO " .. sysbench.opt.pgsql_schema)
+     print ("DB SCHEMA ".. sysbench.opt.pgsql_schema)
+   end
+
+   return drv,con
+end
+
+-- Create the tables and Prepare the dataset. This command supports parallel execution, i.e. will
+-- benefit from executing with --threads > 1 as long as --scale > 1
+function cmd_prepare()
+
+   drv,con = db_connection_init()
 
    -- create tables in parallel table per thread
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.tables,
@@ -99,8 +115,8 @@ end
 -- Check consistency 
 -- benefit from executing with --threads > 1 as long as --scale > 1
 function cmd_check()
-   local drv = sysbench.sql.driver()
-   local con = drv:connect()
+
+   drv,con = db_connection_init()
 
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.scale,
    sysbench.opt.threads do
@@ -392,8 +408,6 @@ function load_tables(drv, con, warehouse_num)
    local extra_table_options = ""
    local query
 
-   set_isolation_level(drv,con)
-   
    -- print(string.format("Creating warehouse: %d\n", warehouse_num))
 
    for table_num = 1, sysbench.opt.tables do 
@@ -570,24 +584,14 @@ function load_tables(drv, con, warehouse_num)
 
 end
 
-function thread_init()
-   drv = sysbench.sql.driver()
-   con = drv:connect()
-   con:query("SET AUTOCOMMIT=0")
-
-end
 
 function thread_done()
    con:disconnect()
 end
 
 function cleanup()
-   local drv = sysbench.sql.driver()
-   local con = drv:connect()
 
-   if drv:name() == "mysql" then 
-      con:query("SET FOREIGN_KEY_CHECKS=0")
-   end
+   drv,con = db_connection_init()
 
    for i = 1, sysbench.opt.tables do
       print(string.format("Dropping tables '%d'...", i))
