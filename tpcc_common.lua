@@ -70,8 +70,8 @@ function sleep(n)
 end
 
 function db_connection_init()
-   drv = sysbench.sql.driver()
-   con = drv:connect()
+   local drv = sysbench.sql.driver()
+   local con = drv:connect()
 
    set_isolation_level(drv,con)
 
@@ -92,7 +92,7 @@ end
 -- benefit from executing with --threads > 1 as long as --scale > 1
 function cmd_prepare()
 
-   drv,con = db_connection_init()
+   local drv,con = db_connection_init()
 
    -- create tables in parallel table per thread
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.tables,
@@ -116,7 +116,7 @@ end
 -- benefit from executing with --threads > 1 as long as --scale > 1
 function cmd_check()
 
-   drv,con = db_connection_init()
+   local drv,con = db_connection_init()
 
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.scale,
    sysbench.opt.threads do
@@ -340,7 +340,7 @@ function create_tables(drv, con, table_num)
  
       query = string.format([[(%d,%d,'%s',%f,'%s')]],
 	j, i_im_id, i_name:sub(1,24), i_price, i_data:sub(1,50))
-      con:bulk_insert_next(query)
+        con:bulk_insert_next(query)
 		 
    end
    con:bulk_insert_done()
@@ -365,7 +365,6 @@ function create_tables(drv, con, table_num)
         con:query("ALTER TABLE stock"..i.." ADD CONSTRAINT fkey_stock_1_"..table_num.." FOREIGN KEY(s_w_id) REFERENCES warehouse"..i.."(w_id)")
         con:query("ALTER TABLE stock"..i.." ADD CONSTRAINT fkey_stock_2_"..table_num.." FOREIGN KEY(s_i_id) REFERENCES item"..i.."(i_id)")
     end
-
 end
 
 
@@ -408,6 +407,8 @@ function load_tables(drv, con, warehouse_num)
    local extra_table_options = ""
    local query
 
+   con:query("SET autocommit=1")
+
    -- print(string.format("Creating warehouse: %d\n", warehouse_num))
 
    for table_num = 1, sysbench.opt.tables do 
@@ -421,8 +422,8 @@ function load_tables(drv, con, warehouse_num)
 	warehouse_num, sysbench.rand.string("name-@@@@@"), sysbench.rand.string("street1-@@@@@@@@@@"),
         sysbench.rand.string("street2-@@@@@@@@@@"), sysbench.rand.string("city-@@@@@@@@@@"),
         sysbench.rand.string("@@"),sysbench.rand.string("zip-#####"),sysbench.rand.uniform_double()*0.2 )
-      con:bulk_insert_next(query)
-		 
+
+    con:bulk_insert_next(query)
     con:bulk_insert_done()
 
     con:bulk_insert_init("INSERT INTO district" .. table_num .. 
@@ -437,7 +438,7 @@ function load_tables(drv, con, warehouse_num)
       con:bulk_insert_next(query)
 
    end
- con:bulk_insert_done()
+   con:bulk_insert_done()
 
 -- CUSTOMER TABLE
 
@@ -591,7 +592,7 @@ end
 
 function cleanup()
 
-   drv,con = db_connection_init()
+   local drv,con = db_connection_init()
 
    for i = 1, sysbench.opt.tables do
       print(string.format("Dropping tables '%d'...", i))
