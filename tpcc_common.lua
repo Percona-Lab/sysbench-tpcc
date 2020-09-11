@@ -407,9 +407,6 @@ function load_tables(drv, con, warehouse_num)
    local extra_table_options = ""
    local query
 
-   if drv:name() == "mysql" then
-      con:query("SET autocommit=1")
-   end
 
    -- print(string.format("Creating warehouse: %d\n", warehouse_num))
    if drv:name() == "mysql"
