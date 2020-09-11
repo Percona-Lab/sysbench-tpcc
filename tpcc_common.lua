@@ -409,8 +409,16 @@ function load_tables(drv, con, warehouse_num)
    local query
 
    -- print(string.format("Creating warehouse: %d\n", warehouse_num))
+   if drv:name() == "mysql"
+   then
+   	con:query("SET SESSION autocommit=1")
+	con:query("SET SESSION sql_log_bin = 0")
+   	con:query("SET @trx = (SELECT @@global.innodb_flush_log_at_trx_commit)")
+   	con:query("SET GLOBAL innodb_flush_log_at_trx_commit=0")
+   end
 
    for table_num = 1, sysbench.opt.tables do 
+	  --con:query("SET autocommit=1")
 
    print(string.format("loading tables: %d for warehouse: %d\n", table_num, warehouse_num))
 
@@ -581,6 +589,12 @@ function load_tables(drv, con, warehouse_num)
    con:bulk_insert_done()
 
   end
+
+   if drv:name() == "mysql"
+   then
+--   	con:query("SET @trx = (SELECT @@global.innodb_flush_log_at_trx_commit=0)")
+   	con:query("SET GLOBAL innodb_flush_log_at_trx_commit=@trx")
+   end
 
 end
 
