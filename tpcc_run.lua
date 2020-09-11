@@ -302,7 +302,7 @@ function payment()
 			                   FROM customer%d
 			                  WHERE c_w_id = %d 
 			                    AND c_d_id= %d
-                                            AND c_last='%s']]):format(table_num, w_id, c_d_id, c_last ))
+                                            AND c_last='%s']]):format(table_num, c_w_id, c_d_id, c_last ))
 --		SELECT c_id
 --		FROM customer
 --		WHERE c_w_id = :c_w_id 
@@ -318,7 +318,7 @@ function payment()
 		 	    FROM customer%d
 			   WHERE c_w_id = %d AND c_d_id= %d
                              AND c_last='%s' ORDER BY c_first]]
-			):format(table_num, w_id, c_d_id, c_last ))
+			):format(table_num, c_w_id, c_d_id, c_last ))
 
 	for i = 1,  (namecnt / 2 ) + 1 do
 		row = rs:fetch_row()
@@ -348,7 +348,7 @@ function payment()
 			   WHERE c_w_id = %d 
 			     AND c_d_id= %d
 			     AND c_id=%d FOR UPDATE]])
-			 :format(table_num, w_id, c_d_id, c_id ))
+			 :format(table_num, c_w_id, c_d_id, c_id ))
 
   c_balance = tonumber(c_balance) - h_amount
   c_ytd_payment = tonumber(c_ytd_payment) + h_amount
@@ -367,7 +367,7 @@ function payment()
                                    WHERE c_w_id = %d 
                                      AND c_d_id=%d
                                      AND c_id= %d]]):
-                                  format(table_num, w_id, c_d_id, c_id ))
+                                  format(table_num, c_w_id, c_d_id, c_id ))
 
         local c_new_data=string.sub(string.format("| %4d %2d %4d %2d %4d $%7.2f %12s %24s",
                 c_id, c_d_id, c_w_id, d_id, w_id, h_amount, os.time(), c_data), 1, 500);
@@ -382,14 +382,14 @@ function payment()
                       WHERE c_w_id = %d 
                         AND c_d_id=%d
                         AND c_id=%d]])
-		  :format(table_num, c_balance, c_ytd_payment, c_new_data, w_id, c_d_id, c_id  ))
+		  :format(table_num, c_balance, c_ytd_payment, c_new_data, c_w_id, c_d_id, c_id  ))
   else
         con:query(([[UPDATE customer%d
                         SET c_balance=%f, c_ytd_payment=%f
                       WHERE c_w_id = %d 
                         AND c_d_id=%d
                         AND c_id=%d]])
-		  :format(table_num, c_balance, c_ytd_payment, w_id, c_d_id, c_id  ))
+		  :format(table_num, c_balance, c_ytd_payment, c_w_id, c_d_id, c_id  ))
 
   end
 
