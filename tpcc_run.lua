@@ -310,7 +310,7 @@ function payment()
 --		AND c_last = :c_last
 --		ORDER BY c_first;
 
-	if namecnt % 2 == 1 then
+	if namecnt >1 and namecnt % 2 == 1 then
 		namecnt = namecnt + 1
 	end
 
@@ -458,7 +458,7 @@ function orderstatus()
                              AND c_last='%s' ORDER BY c_first]])
 		:format(table_num, w_id, d_id, c_last ))
 
-        if namecnt % 2 == 1 then
+        if namecnt >1 and namecnt % 2 == 1 then
             namecnt = namecnt + 1
         end
         for i = 1,  (namecnt / 2 ) + 1 do
