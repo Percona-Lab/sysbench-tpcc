@@ -310,7 +310,7 @@ function payment()
 --		AND c_last = :c_last
 --		ORDER BY c_first;
 
-	if namecnt >1 and namecnt % 2 == 1 then
+	if tonumber(namecnt) >1 and namecnt % 2 == 1 then
 		namecnt = namecnt + 1
 	end
 
