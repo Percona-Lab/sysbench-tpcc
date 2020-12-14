@@ -412,7 +412,7 @@ function load_tables(drv, con, warehouse_num)
    if drv:name() == "mysql"
    then
    	con:query("SET SESSION autocommit=1")
-	con:query("SET SESSION sql_log_bin = 0")
+	-- con:query("SET SESSION sql_log_bin = 0")
    	con:query("SET @trx = (SELECT @@global.innodb_flush_log_at_trx_commit)")
    	con:query("SET GLOBAL innodb_flush_log_at_trx_commit=0")
    end
