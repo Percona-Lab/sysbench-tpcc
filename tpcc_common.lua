@@ -75,7 +75,7 @@ function db_connection_init()
 
    set_isolation_level(drv,con)
 
-   if drv:name() == "mysql" then 
+   if drv:name() == "mysql" then
       con:query("SET FOREIGN_KEY_CHECKS=0")
       con:query("SET autocommit=0")
    end
@@ -112,7 +112,7 @@ function cmd_prepare()
 
 end
 
--- Check consistency 
+-- Check consistency
 -- benefit from executing with --threads > 1 as long as --scale > 1
 function cmd_check()
 
@@ -138,8 +138,8 @@ function create_tables(drv, con, table_num)
    local extra_table_options = ""
    local query
    local tinyint_type="smallint"
-   local datetime_type="timestamp"   
-   
+   local datetime_type="timestamp"
+
    if drv:name() == "mysql" or drv:name() == "attachsql" or
       drv:name() == "drizzle"
    then
@@ -154,15 +154,15 @@ function create_tables(drv, con, table_num)
    query = string.format([[
 	CREATE TABLE IF NOT EXISTS warehouse%d (
 	w_id smallint not null,
-	w_name varchar(10), 
-	w_street_1 varchar(20), 
-	w_street_2 varchar(20), 
-	w_city varchar(20), 
-	w_state char(2), 
-	w_zip char(9), 
-	w_tax decimal(4,2), 
+	w_name varchar(10),
+	w_street_1 varchar(20),
+	w_street_2 varchar(20),
+	w_city varchar(20),
+	w_state char(2),
+	w_zip char(9),
+	w_tax decimal(4,2),
 	w_ytd decimal(12,2),
-	primary key (w_id) 
+	primary key (w_id)
 	) %s %s]],
         table_num, engine_def, extra_table_options)
 
@@ -170,18 +170,18 @@ function create_tables(drv, con, table_num)
 
    query = string.format([[
 	create table IF NOT EXISTS district%d (
-	d_id ]] .. tinyint_type .. [[ not null, 
-	d_w_id smallint not null, 
-	d_name varchar(10), 
-	d_street_1 varchar(20), 
-	d_street_2 varchar(20), 
-	d_city varchar(20), 
-	d_state char(2), 
-	d_zip char(9), 
-	d_tax decimal(4,2), 
-	d_ytd decimal(12,2), 
+	d_id ]] .. tinyint_type .. [[ not null,
+	d_w_id smallint not null,
+	d_name varchar(10),
+	d_street_1 varchar(20),
+	d_street_2 varchar(20),
+	d_city varchar(20),
+	d_state char(2),
+	d_zip char(9),
+	d_tax decimal(4,2),
+	d_ytd decimal(12,2),
 	d_next_o_id int,
-	primary key (d_w_id, d_id) 
+	primary key (d_w_id, d_id)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
 
@@ -191,26 +191,26 @@ function create_tables(drv, con, table_num)
 
    query = string.format([[
 	create table IF NOT EXISTS customer%d (
-	c_id int not null, 
+	c_id int not null,
 	c_d_id ]] .. tinyint_type .. [[ not null,
-	c_w_id smallint not null, 
-	c_first varchar(16), 
-	c_middle char(2), 
-	c_last varchar(16), 
-	c_street_1 varchar(20), 
-	c_street_2 varchar(20), 
-	c_city varchar(20), 
-	c_state char(2), 
-	c_zip char(9), 
-	c_phone char(16), 
-	c_since ]] .. datetime_type .. [[, 
-	c_credit char(2), 
-	c_credit_lim bigint, 
-	c_discount decimal(4,2), 
-	c_balance decimal(12,2), 
-	c_ytd_payment decimal(12,2), 
-	c_payment_cnt smallint, 
-	c_delivery_cnt smallint, 
+	c_w_id smallint not null,
+	c_first varchar(16),
+	c_middle char(2),
+	c_last varchar(16),
+	c_street_1 varchar(20),
+	c_street_2 varchar(20),
+	c_city varchar(20),
+	c_state char(2),
+	c_zip char(9),
+	c_phone char(16),
+	c_since ]] .. datetime_type .. [[,
+	c_credit char(2),
+	c_credit_lim bigint,
+	c_discount decimal(4,2),
+	c_balance decimal(12,2),
+	c_ytd_payment decimal(12,2),
+	c_payment_cnt smallint,
+	c_delivery_cnt smallint,
 	c_data text,
 	PRIMARY KEY(c_w_id, c_d_id, c_id)
 	) %s %s]],
@@ -228,13 +228,13 @@ function create_tables(drv, con, table_num)
    query = string.format([[
 	create table IF NOT EXISTS history%d (
         %s
-	h_c_id int, 
-	h_c_d_id ]] .. tinyint_type .. [[, 
+	h_c_id int,
+	h_c_d_id ]] .. tinyint_type .. [[,
 	h_c_w_id smallint,
 	h_d_id ]] .. tinyint_type .. [[,
 	h_w_id smallint,
 	h_date ]] .. datetime_type .. [[,
-	h_amount decimal(6,2), 
+	h_amount decimal(6,2),
 	h_data varchar(24) %s
 	) %s %s]],
       table_num, hist_auto_inc, hist_pk, engine_def, extra_table_options)
@@ -243,15 +243,15 @@ function create_tables(drv, con, table_num)
 
    query = string.format([[
 	create table IF NOT EXISTS orders%d (
-	o_id int not null, 
-	o_d_id ]] .. tinyint_type .. [[ not null, 
+	o_id int not null,
+	o_d_id ]] .. tinyint_type .. [[ not null,
 	o_w_id smallint not null,
 	o_c_id int,
 	o_entry_d ]] .. datetime_type .. [[,
 	o_carrier_id ]] .. tinyint_type .. [[,
-	o_ol_cnt ]] .. tinyint_type .. [[, 
+	o_ol_cnt ]] .. tinyint_type .. [[,
 	o_all_local ]] .. tinyint_type .. [[,
-	PRIMARY KEY(o_w_id, o_d_id, o_id) 
+	PRIMARY KEY(o_w_id, o_d_id, o_id)
 	) %s %s]],
       table_num, engine_def, extra_table_options)
 
@@ -271,16 +271,16 @@ function create_tables(drv, con, table_num)
    con:query(query)
 
    query = string.format([[
-	create table IF NOT EXISTS order_line%d ( 
-	ol_o_id int not null, 
+	create table IF NOT EXISTS order_line%d (
+	ol_o_id int not null,
 	ol_d_id ]] .. tinyint_type .. [[ not null,
 	ol_w_id smallint not null,
 	ol_number ]] .. tinyint_type .. [[ not null,
-	ol_i_id int, 
+	ol_i_id int,
 	ol_supply_w_id smallint,
-	ol_delivery_d ]] .. datetime_type .. [[, 
-	ol_quantity ]] .. tinyint_type .. [[, 
-	ol_amount decimal(6,2), 
+	ol_delivery_d ]] .. datetime_type .. [[,
+	ol_quantity ]] .. tinyint_type .. [[,
+	ol_amount decimal(6,2),
 	ol_dist_info char(24),
 	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number)
 	) %s %s]],
@@ -292,21 +292,21 @@ function create_tables(drv, con, table_num)
 
    query = string.format([[
 	create table IF NOT EXISTS stock%d (
-	s_i_id int not null, 
-	s_w_id smallint not null, 
-	s_quantity smallint, 
-	s_dist_01 char(24), 
+	s_i_id int not null,
+	s_w_id smallint not null,
+	s_quantity smallint,
+	s_dist_01 char(24),
 	s_dist_02 char(24),
 	s_dist_03 char(24),
-	s_dist_04 char(24), 
-	s_dist_05 char(24), 
-	s_dist_06 char(24), 
-	s_dist_07 char(24), 
-	s_dist_08 char(24), 
-	s_dist_09 char(24), 
-	s_dist_10 char(24), 
-	s_ytd decimal(8,0), 
-	s_order_cnt smallint, 
+	s_dist_04 char(24),
+	s_dist_05 char(24),
+	s_dist_06 char(24),
+	s_dist_07 char(24),
+	s_dist_08 char(24),
+	s_dist_09 char(24),
+	s_dist_10 char(24),
+	s_ytd decimal(8,0),
+	s_order_cnt smallint,
 	s_remote_cnt smallint,
 	s_data varchar(50),
 	PRIMARY KEY(s_w_id, s_i_id)
@@ -319,12 +319,12 @@ function create_tables(drv, con, table_num)
 
    query = string.format([[
 	create table IF NOT EXISTS item%d (
-	i_id int not null, 
-	i_im_id int, 
-	i_name varchar(24), 
-	i_price decimal(5,2), 
+	i_id int not null,
+	i_im_id int,
+	i_name varchar(24),
+	i_price decimal(5,2),
 	i_data varchar(50),
-	PRIMARY KEY(i_id) 
+	PRIMARY KEY(i_id)
 	) %s %s]],
       i, engine_def, extra_table_options)
 
@@ -337,11 +337,11 @@ function create_tables(drv, con, table_num)
       -- i_name is not generated as prescribed by standard, but we want to provide a better compression
       local i_name  = string.format("item-%d-%f-%s", i_im_id, i_price, sysbench.rand.string("@@@@@"))
       local i_data  = string.format("data-%s-%s", i_name, sysbench.rand.string("@@@@@"))
- 
+
       query = string.format([[(%d,%d,'%s',%f,'%s')]],
 	j, i_im_id, i_name:sub(1,24), i_price, i_data:sub(1,50))
         con:bulk_insert_next(query)
-		 
+
    end
    con:bulk_insert_done()
 
@@ -378,7 +378,7 @@ function set_isolation_level(drv,con)
         elseif sysbench.opt.trx_level == "SER" then
             isolation_level="SERIALIZABLE"
         end
-       
+
         isolation_variable=con:query_row("SHOW VARIABLES LIKE 't%_isolation'")
 
         con:query("SET SESSION " .. isolation_variable .. "='".. isolation_level .."'")
@@ -393,7 +393,7 @@ function set_isolation_level(drv,con)
         elseif sysbench.opt.trx_level == "SER" then
             isolation_level="SERIALIZABLE"
         end
-       
+
         con:query("SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL " .. isolation_level )
    end
 
@@ -417,12 +417,12 @@ function load_tables(drv, con, warehouse_num)
    	con:query("SET GLOBAL innodb_flush_log_at_trx_commit=0")
    end
 
-   for table_num = 1, sysbench.opt.tables do 
+   for table_num = 1, sysbench.opt.tables do
 	  --con:query("SET autocommit=1")
 
    print(string.format("loading tables: %d for warehouse: %d\n", table_num, warehouse_num))
 
-    con:bulk_insert_init("INSERT INTO warehouse" .. table_num .. 
+    con:bulk_insert_init("INSERT INTO warehouse" .. table_num ..
 	" (w_id, w_name, w_street_1, w_street_2, w_city, w_state, w_zip, w_tax, w_ytd) values")
 
     query = string.format([[(%d, '%s','%s','%s', '%s', '%s', '%s', %f,300000)]],
@@ -433,11 +433,11 @@ function load_tables(drv, con, warehouse_num)
     con:bulk_insert_next(query)
     con:bulk_insert_done()
 
-    con:bulk_insert_init("INSERT INTO district" .. table_num .. 
+    con:bulk_insert_init("INSERT INTO district" .. table_num ..
 	" (d_id, d_w_id, d_name, d_street_1, d_street_2, d_city, d_state, d_zip, d_tax, d_ytd, d_next_o_id) values")
 
    for d_id = 1 , DIST_PER_WARE do
- 
+
       query = string.format([[(%d, %d, '%s','%s','%s', '%s', '%s', '%s', %f,30000,3001)]],
 	d_id, warehouse_num, sysbench.rand.string("name-@@@@@"), sysbench.rand.string("street1-@@@@@@@@@@"),
         sysbench.rand.string("street2-@@@@@@@@@@"), sysbench.rand.string("city-@@@@@@@@@@"),
@@ -450,8 +450,8 @@ function load_tables(drv, con, warehouse_num)
 -- CUSTOMER TABLE
 
    con:bulk_insert_init("INSERT INTO customer" .. table_num .. [[
-	  (c_id, c_d_id, c_w_id, c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip, 
-	   c_phone, c_since, c_credit, c_credit_lim, c_discount, c_balance, c_ytd_payment, c_payment_cnt, c_delivery_cnt, 
+	  (c_id, c_d_id, c_w_id, c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip,
+	   c_phone, c_since, c_credit, c_credit_lim, c_discount, c_balance, c_ytd_payment, c_payment_cnt, c_delivery_cnt,
            c_data) values]])
 
    for d_id = 1 , DIST_PER_WARE do
@@ -460,13 +460,13 @@ function load_tables(drv, con, warehouse_num)
 
 	if c_id <= 1000 then
 		c_last = Lastname(c_id - 1)
-	else 
+	else
 		c_last = Lastname(NURand(255, 0, 999))
 	end
- 
+
       query = string.format([[(%d, %d, %d, '%s','OE','%s','%s', '%s', '%s', '%s', '%s','%s',NOW(),'%s',50000,%f,-10,10,1,0,'%s' )]],
-	c_id, d_id, warehouse_num, 
-        sysbench.rand.string("first-"..string.rep("@",sysbench.rand.uniform(2,10))), 
+	c_id, d_id, warehouse_num,
+        sysbench.rand.string("first-"..string.rep("@",sysbench.rand.uniform(2,10))),
         c_last,
         sysbench.rand.string("street1-@@@@@@@@@@"),
         sysbench.rand.string("street2-@@@@@@@@@@"), sysbench.rand.string("city-@@@@@@@@@@"),
@@ -475,11 +475,11 @@ function load_tables(drv, con, warehouse_num)
         (sysbench.rand.uniform(1,100) > 10) and "GC" or "BC",
 	sysbench.rand.uniform_double()*0.5,
 	string.rep(sysbench.rand.string("@"),sysbench.rand.uniform(300,500))
-        
+
         )
       con:bulk_insert_next(query)
 
-   end 
+   end
    end
 
    con:bulk_insert_done()
@@ -491,14 +491,14 @@ function load_tables(drv, con, warehouse_num)
 
    for d_id = 1 , DIST_PER_WARE do
    for c_id = 1 , CUST_PER_DIST do
- 
+
       query = string.format([[(%d, %d, %d, %d, %d, NOW(), 10, '%s' )]],
-	c_id, d_id, warehouse_num, d_id, warehouse_num, 
+	c_id, d_id, warehouse_num, d_id, warehouse_num,
 	string.rep(sysbench.rand.string("@"),sysbench.rand.uniform(12,24))
         )
       con:bulk_insert_next(query)
 
-   end 
+   end
    end
 
    con:bulk_insert_done()
@@ -525,27 +525,27 @@ function load_tables(drv, con, warehouse_num)
    for o_id = 1 , 3000 do
 -- 3,000 rows in the ORDER table with
    a_counts[warehouse_num][d_id][o_id] = sysbench.rand.uniform(5,15)
- 
+
       query = string.format([[(%d, %d, %d, %d, NOW(), %s, %d, 1 )]],
-	o_id, d_id, warehouse_num, tab[o_id], 
+	o_id, d_id, warehouse_num, tab[o_id],
         o_id < 2101 and sysbench.rand.uniform(1,10) or "NULL",
         a_counts[warehouse_num][d_id][o_id]
         )
       con:bulk_insert_next(query)
 
-   end 
+   end
    end
 
    con:bulk_insert_done()
 
 -- STOCK table
 
-   con:bulk_insert_init("INSERT INTO stock" .. table_num .. 
+   con:bulk_insert_init("INSERT INTO stock" .. table_num ..
 	" (s_i_id, s_w_id, s_quantity, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, "..
         " s_dist_07, s_dist_08, s_dist_09, s_dist_10, s_ytd, s_order_cnt, s_remote_cnt, s_data) values")
 
    for s_id = 1 , 100000 do
- 
+
       query = string.format([[(%d, %d, %d,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',0,0,0,'%s')]],
 	s_id, warehouse_num, sysbench.rand.uniform(10,100),
 	string.rep(sysbench.rand.string("@"),24),
@@ -561,29 +561,29 @@ function load_tables(drv, con, warehouse_num)
 	string.rep(sysbench.rand.string("@"),sysbench.rand.uniform(26,50)))
       con:bulk_insert_next(query)
 
-   end 
+   end
    con:bulk_insert_done()
 
    con:query(string.format("INSERT INTO new_orders%d (no_o_id, no_d_id, no_w_id) SELECT o_id, o_d_id, o_w_id FROM orders%d WHERE o_id>2100 and o_w_id=%d", table_num, table_num, warehouse_num))
 
    con:bulk_insert_init("INSERT INTO order_line" .. table_num .. [[
-	  (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_delivery_d, 
+	  (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_delivery_d,
            ol_quantity, ol_amount, ol_dist_info ) values]])
 
    for d_id = 1 , DIST_PER_WARE do
    for o_id = 1 , 3000 do
-   for ol_id = 1, a_counts[warehouse_num][d_id][o_id] do 
- 
+   for ol_id = 1, a_counts[warehouse_num][d_id][o_id] do
+
       query = string.format([[(%d, %d, %d, %d, %d, %d, %s, 5, %f, '%s' )]],
 	    o_id, d_id, warehouse_num, ol_id, sysbench.rand.uniform(1, MAXITEMS), warehouse_num,
-        o_id < 2101 and "NOW()" or "NULL", 
+        o_id < 2101 and "NOW()" or "NULL",
         o_id < 2101 and 0 or sysbench.rand.uniform_double()*9999.99,
 	string.rep(sysbench.rand.string("@"),24)
         )
       res=con:bulk_insert_next(query)
-      
+
    end
-   end 
+   end
    end
 
    con:bulk_insert_done()
@@ -637,7 +637,7 @@ local C_8191
 function NURand (A, x, y)
 	local C
 
-	if init_rand 
+	if init_rand
 	then
 		C_255 = sysbench.rand.uniform(0, 255)
 		C_1023 = sysbench.rand.uniform(0, 1023)
@@ -657,7 +657,10 @@ function NURand (A, x, y)
 	end
 
 	-- return ((( sysbench.rand.uniform(0, A) | sysbench.rand.uniform(x, y)) + C) % (y-x+1)) + x;
-	return ((( bit.bor(sysbench.rand.uniform(0, A), sysbench.rand.uniform(x, y))) + C) % (y-x+1)) + x;
+	local i = sysbench.rand.uniform(0, A)
+	local j = sysbench.rand.uniform(x, y)
+
+	return ((( bit.bor(i, j) ) + C) % (y-x+1)) + x;
 end
 
 -- vim:ts=4 ss=4 sw=4 expandtab
