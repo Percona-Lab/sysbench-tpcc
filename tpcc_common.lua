@@ -657,7 +657,10 @@ function NURand (A, x, y)
 	end
 
 	-- return ((( sysbench.rand.uniform(0, A) | sysbench.rand.uniform(x, y)) + C) % (y-x+1)) + x;
-	return ((( bit.bor(sysbench.rand.uniform(0, A), sysbench.rand.uniform(x, y))) + C) % (y-x+1)) + x;
+	local i = sysbench.rand.uniform(0, A)
+	local j = sysbench.rand.uniform(x, y)
+
+	return ((( bit.bor(i, j) ) + C) % (y-x+1)) + x;
 end
 
 -- vim:ts=4 ss=4 sw=4 expandtab
