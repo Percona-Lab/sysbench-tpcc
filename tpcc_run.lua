@@ -783,15 +783,15 @@ function stocklevel()
 --                      AND s_i_id = :ol_i_id
 --                      AND s_quantity < :level;*/
 
-        rs = con:query(([[execute p_stocklevel4_%d(%d,%d,%d)]]):format(table_num, w_id, ol_i_id, level))
+        rs1 = con:query(([[execute p_stocklevel4_%d(%d,%d,%d)]]):format(table_num, w_id, ol_i_id, level))
 --        rs = con:query(([[SELECT count(*) FROM stock%d
 --                   WHERE s_w_id = %d AND s_i_id = %d
 --                   AND s_quantity < %d]])
 --                :format(table_num, w_id, ol_i_id, level ) )
 
         local cnt
-        for i = 1, rs.nrows do
-            cnt = unpack(rs:fetch_row(), 1, rs.nfields)
+        for i = 1, rs1.nrows do
+            cnt = unpack(rs1:fetch_row(), 1, rs1.nfields)
         end
 
     end
