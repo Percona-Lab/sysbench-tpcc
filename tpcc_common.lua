@@ -222,7 +222,11 @@ function create_tables(drv, con, table_num)
    local hist_auto_inc=""
    local hist_pk=""
    if sysbench.opt.force_pk == 1 then
-      hist_auto_inc="id int NOT NULL AUTO_INCREMENT,"
+      if drv:name() == "pgsql" then
+         hist_auto_inc="id serial NOT NULL,"
+      else
+         hist_auto_inc="id int NOT NULL AUTO_INCREMENT,"
+      end
       hist_pk=",PRIMARY KEY(id)"
    end
    query = string.format([[
