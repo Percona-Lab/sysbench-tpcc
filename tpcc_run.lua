@@ -782,8 +782,15 @@ function purge()
                             :format(table_num, w_id, d_id, del_o_id))
         con:query(([[DELETE FROM orders%d where o_w_id=%d AND o_d_id=%d and o_id=%d]])
                             :format(table_num, w_id, d_id, del_o_id))
-        con:query(([[DELETE FROM history%d where h_w_id=%d AND h_d_id=%d LIMIT 10]])
-                            :format(table_num, w_id, d_id ))
+
+        if drv:name() == "mysql" then   --Use MySQL specific SQL which allows LIMIT clause for DELETE statement
+          con:query(([[DELETE FROM history%d where h_w_id=%d AND h_d_id=%d LIMIT 10]])
+                              :format(table_num, w_id, d_id ))
+        elseif drv:name() == "pgsql" then --Use ctid to delete
+          con:query(([[DELETE FROM history%d where ctid IN (SELECT ctid FROM history%d WHERE h_w_id=%d AND h_d_id=%d LIMIT 10)]])
+                              :format(table_num,table_num, w_id, d_id ))
+        end
+
 
 	end
 
