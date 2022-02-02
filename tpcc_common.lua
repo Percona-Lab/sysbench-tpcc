@@ -62,7 +62,9 @@ sysbench.cmdline.options = {
    mysql_storage_engine =
       {"Storage engine, if MySQL is used", "innodb"},
    mysql_table_options =
-      {"Extra table options, if MySQL is used. e.g. 'COLLATE latin1_bin'", ""}
+      {"Extra table options, if MySQL is used. e.g. 'COLLATE latin1_bin'", ""},
+   time =
+      {"Determines how long to wait before preparing the next table", 30},
 }
 
 function sleep(n)
@@ -102,8 +104,8 @@ function cmd_prepare()
 
    -- make sure all tables are created before we load data
 
-   print("Waiting on tables 30 sec\n")
-   sleep(30)
+   print(string.format("Waiting on tables %d sec\n", sysbench.opt.time))
+   sleep(sysbench.opt.time)
 
    for i = sysbench.tid % sysbench.opt.threads + 1, sysbench.opt.scale,
    sysbench.opt.threads do
