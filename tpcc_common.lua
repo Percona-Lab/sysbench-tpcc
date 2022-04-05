@@ -62,7 +62,9 @@ sysbench.cmdline.options = {
    mysql_storage_engine =
       {"Storage engine, if MySQL is used", "innodb"},
    mysql_table_options =
-      {"Extra table options, if MySQL is used. e.g. 'COLLATE latin1_bin'", ""}
+      {"Extra table options, if MySQL is used. e.g. 'COLLATE latin1_bin'", ""},
+   splittable =
+      {"Create READ WRITE or READ ONLY transactions to allow using a splitting proxy", "no"}
 }
 
 function sleep(n)
